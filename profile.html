@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profil | smpin.uz</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .profile-header {
+      background: var(--surface2);
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .profile-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    .profile-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+    .profile-field {
+      margin-bottom: 20px;
+    }
+    .profile-field label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+    .profile-field input {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .profile-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      background: var(--bg);
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    .profile-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="profile-header">
+    <div style="max-width: 800px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center;">
+      <h1 style="margin: 0;">Mening Profilim</h1>
+      <button class="btn-outline" id="backBtn" style="padding: 10px 20px;">Orqaga</button>
+    </div>
+  </div>
+
+  <div class="profile-container">
+    <div class="profile-card">
+      <h2>Shaxsiy Ma'lumotlar</h2>
+      <div class="profile-field">
+        <label>Email</label>
+        <input type="email" id="emailField" readonly />
+      </div>
+      <div class="profile-field">
+        <label>To'liq Ism</label>
+        <input type="text" id="nameField" readonly />
+      </div>
+      <div class="profile-field">
+        <label>Telegram</label>
+        <input type="text" id="telegramField" readonly />
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <h2>Balans</h2>
+      <div class="profile-info">
+        <span style="color: var(--muted);">Joriy Balans:</span>
+        <span style="font-size: 1.5rem; color: var(--accent); font-weight: bold;" id="balanceAmount">0 so'm</span>
+      </div>
+      <a href="/balance.html" class="btn-primary" style="display: inline-block; margin-top: 10px;">Balans To'ldirish →</a>
+    </div>
+
+    <div class="profile-card">
+      <h2>Xizmatlar</h2>
+      <a href="/topup.html" class="btn-outline" style="display: inline-block; margin-right: 10px;">🎮 O'yin To'ldirish</a>
+      <a href="/smm.html" class="btn-outline" style="display: inline-block; margin-right: 10px;">📱 SMM Xizmatlari</a>
+      <a href="/order-history.html" class="btn-outline" style="display: inline-block;">📋 Buyurtmalar Tarixi</a>
+    </div>
+
+    <div class="profile-card">
+      <h2>Xavfsizlik</h2>
+      <div style="margin-bottom: 15px;">
+        <p style="color: var(--muted); margin-bottom: 10px;">Hisobingizdan chiqish</p>
+        <button class="btn-primary" id="logoutBtn" style="width: 100%; padding: 12px;">Chiqish</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="notifications.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const backBtn = document.getElementById('backBtn');
+      backBtn.addEventListener('click', () => window.location.href = '/');
+
+      const logoutBtn = document.getElementById('logoutBtn');
+      logoutBtn.addEventListener('click', async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/';
+      });
+
+      try {
+        const res = await fetch('/api/user');
+        const { user } = await res.json();
+        if (user) {
+          document.getElementById('emailField').value = user.email || 'Mavjud emas';
+          document.getElementById('nameField').value = user.full_name || 'Mavjud emas';
+          document.getElementById('telegramField').value = user.telegram_username || 'Bog\'langan emas';
+          document.getElementById('balanceAmount').textContent = (user.balance || 0).toLocaleString() + ' so\'m';
+        }
+      } catch (err) {
+        console.error('Profile loading error:', err);
+      }
+    });
+  </script>
+</body>
+</html>

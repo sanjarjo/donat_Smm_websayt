@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buyurtmalar Tarixi | smpin.uz</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .dashboard-header {
+      background: var(--surface2);
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dashboard-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .orders-table th {
+      background: var(--surface2);
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      color: var(--accent);
+    }
+    .orders-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      display: inline-block;
+    }
+    .status-pending {
+      background: rgba(255, 179, 0, 0.2);
+      color: var(--accent2);
+    }
+    .status-processing {
+      background: rgba(56, 193, 255, 0.2);
+      color: var(--accent);
+    }
+    .status-approved {
+      background: rgba(0, 229, 160, 0.2);
+      color: var(--accent3);
+    }
+    .status-rejected {
+      background: rgba(255, 100, 100, 0.2);
+      color: #ff6464;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard-header">
+    <div class="dashboard-container" style="display: flex; justify-content: space-between; align-items: center;">
+      <h1 style="margin: 0;">Buyurtmalar Tarixi</h1>
+      <button class="btn-outline" id="backBtn" style="padding: 10px 20px;">Orqaga</button>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+    <table class="orders-table">
+      <thead>
+        <tr>
+          <th>Buyurtma ID</th>
+          <th>Turi</th>
+          <th>Platforma</th>
+          <th>Xizmat</th>
+          <th>Narx</th>
+          <th>Status</th>
+          <th>Vaqti</th>
+        </tr>
+      </thead>
+      <tbody id="ordersList">
+        <tr><td colspan="7" style="text-align: center;">Yuklanmoqda...</td></tr>
+      </tbody>
+    </table>
+    <div id="emptyState" class="empty-state" style="display: none;">
+      <p>Siz hali buyurtma berishmadingiz</p>
+      <a href="/topup.html" class="btn-primary" style="margin-top: 20px;">Buyurtma berish</a>
+    </div>
+  </div>
+
+  <script src="notifications.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const backBtn = document.getElementById('backBtn');
+      backBtn.addEventListener('click', () => window.history.back());
+
+      try {
+        const res = await fetch('/api/orders');
+        if (!res.ok) throw new Error('Failed to load orders');
+        const { orders } = await res.json();
+
+        const tbody = document.getElementById('ordersList');
+        tbody.innerHTML = '';
+
+        if (!orders || orders.length === 0) {
+          document.getElementById('ordersList').parentElement.style.display = 'none';
+          document.getElementById('emptyState').style.display = 'block';
+          return;
+        }
+
+        orders.forEach(order => {
+          const row = document.createElement('tr');
+          const date = new Date(order.created_at).toLocaleDateString('uz-UZ');
+          row.innerHTML = `
+            <td>#${order.id}</td>
+            <td>${order.type === 'smm' ? '📱 SMM' : '🎮 Top-up'}</td>
+            <td>${order.platform}</td>
+            <td>${order.service_label}</td>
+            <td>${order.price.toLocaleString()} so'm</td>
+            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+            <td>${date}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        document.getElementById('ordersList').innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Xatolik: Buyurtmalarni yuklashda muammo</td></tr>';
+      }
+    });
+  </script>
+</body>
+</html>

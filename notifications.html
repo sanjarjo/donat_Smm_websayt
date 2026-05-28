@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bildirishnomalar | smpin.uz</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .notifications-header {
+      background: var(--surface2);
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .notifications-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    .notification-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+    .notification-item:hover {
+      border-color: var(--border-hover);
+    }
+    .notification-item.unread {
+      border-left: 4px solid var(--accent);
+    }
+    .notification-content {
+      flex: 1;
+    }
+    .notification-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .notification-message {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .notification-time {
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-align: right;
+      margin-left: 20px;
+      white-space: nowrap;
+    }
+    .empty-notifications {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="notifications-header">
+    <div class="notifications-container" style="display: flex; justify-content: space-between; align-items: center;">
+      <h1 style="margin: 0;">Bildirishnomalar</h1>
+      <button class="btn-outline" id="backBtn" style="padding: 10px 20px;">Orqaga</button>
+    </div>
+  </div>
+
+  <div class="notifications-container">
+    <div id="notificationsList">
+      <div class="empty-notifications">Yuklanmoqda...</div>
+    </div>
+  </div>
+
+  <script src="notifications.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const backBtn = document.getElementById('backBtn');
+      backBtn.addEventListener('click', () => window.history.back());
+
+      try {
+        const res = await fetch('/api/notifications');
+        if (!res.ok) throw new Error('Failed to load notifications');
+        const { notifications } = await res.json();
+
+        const container = document.getElementById('notificationsList');
+        container.innerHTML = '';
+
+        if (!notifications || notifications.length === 0) {
+          container.innerHTML = '<div class="empty-notifications">Bildirishnomalar yo\'q</div>';
+          return;
+        }
+
+        notifications.forEach(notif => {
+          const div = document.createElement('div');
+          div.className = `notification-item ${notif.is_read ? '' : 'unread'}`;
+          const date = new Date(notif.created_at).toLocaleDateString('uz-UZ');
+          
+          div.innerHTML = `
+            <div class="notification-content">
+              <div class="notification-title">${notif.title}</div>
+              <div class="notification-message">${notif.message}</div>
+            </div>
+            <div class="notification-time">${date}</div>
+          `;
+
+          if (!notif.is_read) {
+            div.addEventListener('click', async () => {
+              await fetch(`/api/notifications/${notif.id}/read`, { method: 'POST' });
+              div.classList.remove('unread');
+            });
+          }
+
+          container.appendChild(div);
+        });
+      } catch (err) {
+        document.getElementById('notificationsList').innerHTML = '<div class="empty-notifications">Xatolik: Bildirishnomalarni yuklashda muammo</div>';
+      }
+    });
+  </script>
+</body>
+</html>

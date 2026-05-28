@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>smpin.uz | SMM Panel & O'yin Hisob To'ldirish</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header" id="siteHeader">
+    <div class="header-inner">
+      <a href="index.html" class="brand">
+        <img src="logo.png" alt="smpin logo" class="brand-logo" />
+        <span class="brand-name">smpin<span class="brand-dot">.uz</span></span>
+      </a>
+      <nav class="nav-links">
+        <a href="topup.html">Top-up</a>
+        <a href="smm.html">SMM</a>
+        <a href="balance.html">Balans</a>
+        <a href="#howit">Qanday ishlaydi</a>
+        <a href="#contact">Aloqa</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn-outline" id="openLogin">Kirish</button>
+        <button class="btn-primary" id="openRegister">Ro'yxatdan o'tish</button>
+      </div>
+      <button class="burger" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav" id="mobileNav">
+    <a href="topup.html" class="mn-link">Top-up</a>
+    <a href="smm.html" class="mn-link">SMM</a>
+    <a href="balance.html" class="mn-link">Balans</a>
+    <a href="#howit" class="mn-link">Qanday ishlaydi</a>
+    <a href="#contact" class="mn-link">Aloqa</a>
+    <div class="mn-actions">
+      <button class="btn-outline w100" id="mobileLogin">Kirish</button>
+      <button class="btn-primary w100" id="mobileRegister">Ro'yxatdan o'tish</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-bg">
+        <div class="hb-glow hb-glow1"></div>
+        <div class="hb-glow hb-glow2"></div>
+        <div class="hb-grid"></div>
+      </div>
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <div class="badge-pill">🇺🇿 Uzbekiston #1 Panel</div>
+          <h1>SMM xizmatlari va<br/><span class="gradient-text">o'yin hisob to'ldirish</span></h1>
+          <p class="hero-desc">Instagram, TikTok, Telegram va boshqa platformalar uchun followers, likes, views. PUBG, Free Fire, Mobile Legends va 50+ o'yin uchun tezkor hisob to'ldirish.</p>
+          <div class="hero-btns">
+            <button class="btn-primary btn-lg" id="heroRegister">Boshlash — Bepul</button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat">
+              <span class="stat-num" data-target="50000">0</span>
+              <span class="stat-label">Foydalanuvchilar</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-num" data-target="120">0</span>
+              <span class="stat-label">O'yin va xizmatlar</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+              <span class="stat-num" data-target="24">0</span>
+              <span class="stat-label">Soat xizmat</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hv-card hv-main">
+            <div class="hv-row">
+              <span class="hv-icon">⚡</span>
+              <div>
+                <p class="hv-title">Buyurtma bajarildi</p>
+                <p class="hv-sub">Instagram followers — 1,000</p>
+              </div>
+              <span class="hv-status done">✓</span>
+            </div>
+            <div class="hv-row">
+              <span class="hv-icon">🎮</span>
+              <div>
+                <p class="hv-title">PUBG Mobile</p>
+                <p class="hv-sub">660 UC — to'landi</p>
+              </div>
+              <span class="hv-status done">✓</span>
+            </div>
+            <div class="hv-row">
+              <span class="hv-icon">🕐</span>
+              <div>
+                <p class="hv-title">TikTok views</p>
+                <p class="hv-sub">10,000 views — jarayonda</p>
+              </div>
+              <span class="hv-status pending">...</span>
+            </div>
+          </div>
+          <div class="hv-card hv-mini hv-mini1">
+            <p class="hv-big">2 min</p>
+            <p class="hv-small">O'rtacha bajarish vaqti</p>
+          </div>
+          <div class="hv-card hv-mini hv-mini2">
+            <p class="hv-big">99.8%</p>
+            <p class="hv-small">Muvaffaqiyat darajasi</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRUST LOGOS -->
+    <section class="trust-bar">
+      <div class="container trust-inner">
+        <span class="trust-label">Qabul qilinadigan to'lovlar:</span>
+        <div class="trust-logos">
+          <span class="trust-logo">💳 Payme</span>
+          <span class="trust-logo">💳 Click</span>
+          <span class="trust-logo">💳 Uzcard</span>
+          <span class="trust-logo">💳 Humo</span>
+          <span class="trust-logo">💳 Visa / MasterCard</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="howit">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">🔧 QANDAY ISHLAYDI</span>
+          <h2>3 qadam — va tayyor!</h2>
+        </div>
+        <div class="steps-grid">
+          <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-icon">👤</div>
+            <h3>Ro'yxatdan o'ting</h3>
+            <p>Google yoki Telegram orqali 30 soniyada tezkor ro'yxatdan o'ting. Hech qanday ma'lumot talab qilinmaydi.</p>
+          </div>
+          <div class="step-arrow">→</div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-icon">💳</div>
+            <h3>Balansni to'ldiring</h3>
+            <p>Payme, Click, Uzcard, Humo yoki bank kartasi orqali balansga pul qo'shing. Minimal 5,000 so'm.</p>
+          </div>
+          <div class="step-arrow">→</div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-icon">⚡</div>
+            <h3>Buyurtma bering</h3>
+            <p>Kerakli xizmat yoki o'yinni tanlang va buyurtma bering. Bir necha daqiqa ichida bajariladi.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section" id="reviews">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">⭐ MIJOZLAR FIKRI</span>
+          <h2>Ular nima deydi?</h2>
+        </div>
+        <div class="reviews-grid">
+          <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p>"PUBG UC ni 2 daqiqada oldim. Juda tez va ishonchli. Boshqalarga ham maslahat beraman!"</p>
+            <div class="reviewer">
+              <div class="reviewer-av">SH</div>
+              <div><p>Sherzod H.</p><span>Toshkent</span></div>
+            </div>
+          </div>
+          <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <p>"TikTok followers uchun ishlatdim. Haqiqiy followerlar keldi. Narxi ham juda arzon!"</p>
+            <div class="reviewer">
+              <div class="reviewer-av">MU</div>
+              <div><p>Malika U.</p><span>Samarqand</span></div>
+            </div>
+          </div>
+          <div class="review-card">
+            <div class="review-stars">★★★★☆</div>
+            <p>"Telegram kanalimga 5000 a'zo qo'shdim. Bir soat ichida bajarildi. Xizmat a'lo darajada."</p>
+            <div class="reviewer">
+              <div class="reviewer-av">JA</div>
+              <div><p>Jasur A.</p><span>Farg'ona</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT / FAQ -->
+    <section class="section section-dark" id="contact">
+      <div class="container contact-inner">
+        <div class="contact-left">
+          <span class="eyebrow">📞 BOG'LANISH</span>
+          <h2>Savolingiz bormi?</h2>
+          <p>Bizning 24/7 qo'llab-quvvatlash jamoamiz doimo yordam berishga tayyor.</p>
+          <div class="contact-links">
+            <a href="https://t.me/smpinbot" target="_blank" class="contact-link tg">
+              <span>📨</span> Telegram Bot
+            </a>
+            <a href="https://t.me/smpinbot" target="_blank" class="contact-link tg">
+              <span>💬</span> Telegram Kanal
+            </a>
+            <a href="mailto:smpinuz@gmail.com" class="contact-link email">
+              <span>📧</span> smpinuz@gmail.com
+            </a>
+          </div>
+        </div>
+        <div class="faq-right">
+          <div class="faq-item">
+           <button class="faq-q">
+              Buyurtma necha vaqtda bajariladi? <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-a">Ko'pchilik buyurtmalar 1-10 daqiqa ichida boshlanadi. Ba'zi xizmatlar (YouTube subscribers) 24-48 soat talab qilishi mumkin.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q">
+              Pul qaytarish mumkinmi? <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-a">Bajarilmagan buyurtmalar uchun balans qaytariladi. Bajarilgan buyurtmalar uchun pul qaytarilmaydi.</div>
+          </div>
+          <div class="faq-item">
+           <button class="faq-q">
+              Xizmatlar xavfsizmi? <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-a">Barcha xizmatlar xavfsiz usullarda taqdim etiladi. Hisobingiz blokirovka bo'lishi xavfi minimal.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q">
+              Minimal buyurtma miqdori qancha? <span class="faq-arrow">▼</span>
+            </button>
+            <div class="faq-a">Har bir xizmat uchun minimal miqdor farqli. Odatda 100-500 dona yoki 1 dona o'yin valyutasidan boshlanadi.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="cta-bg">
+        <div class="cta-glow"></div>
+      </div>
+      <div class="container cta-inner">
+        <h2>Bugun boshlang — <span class="gradient-text">bepul ro'yxatdan o'ting</span></h2>
+        <p>50,000+ foydalanuvchi allaqachon smpin dan foydalanmoqda</p>
+        <div class="cta-btns">
+          <button class="btn-primary btn-lg" id="ctaRegister">Bepul boshlash →</button>
+          <a href="https://t.me/smpinbot" target="_blank" class="btn-ghost btn-lg">Telegram bot →</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="logo.png" alt="smpin" class="brand-logo" />
+        <div>
+          <p class="footer-name">smpin.uz</p>
+          <p class="footer-tagline">Uzbekiston's #1 SMM & Game Panel</p>
+        </div>
+      </div>
+      <div class="footer-links-grid">
+        <div class="fl-col">
+          <p class="fl-head">Xizmatlar</p>
+          <a href="topup.html">O'yin to'ldirish</a>
+          <a href="smm.html">SMM xizmatlari</a>
+          <a href="balance.html">Balans</a>
+        </div>
+        <div class="fl-col">
+          <p class="fl-head">Kompaniya</p>
+          <a href="#">Biz haqimizda</a>
+          <a href="#">Shartlar</a>
+          <a href="#">Maxfiylik</a>
+        </div>
+        <div class="fl-col">
+          <p class="fl-head">Aloqa</p>
+          <a href="https://t.me/smpinbot">Telegram Bot</a>
+          <a href="https://t.me/smpinbot">Telegram Kanal</a>
+          <a href="mailto:smpinuz@gmail.com">smpinuz@gmail.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 smpin.uz. Barcha huquqlar himoyalangan.</p>
+    </div>
+  </footer>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-box">
+      <button class="modal-close">✕</button>
+      <div class="modal-logo">
+        <img src="logo.png" alt="smpin" />
+        <span>smpin.uz</span>
+      </div>
+      <h2 id="authTitle">Xush kelibsiz!</h2>
+      <p id="authDesc">Hisobingizga kiring yoki yangi hisob yarating.</p>
+      <div class="auth-tabs">
+       <button class="auth-tab active" id="loginTab">Kirish</button>
+       <button class="auth-tab" id="registerTab">Ro'yxatdan o'tish</button>
+      </div>
+      <div class="auth-social">
+        <button class="auth-btn google" id="googleAuthBtn">
+  <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.58-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+  </svg>
+  Google bilan <span class="authAction">kirish</span>
+      </button>
+<button class="auth-btn telegram" id="telegramAuthBtn">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z" fill="#29B6F6"/>
+  </svg>
+  Telegram bilan <span class="authAction">kirish</span>
+        </button>
+      </div>
+      <div class="auth-divider"><span>yoki</span></div>
+      <div class="auth-form">
+        <input type="email" placeholder="Email manzilingiz" class="auth-input" />
+        <input type="password" placeholder="Parol" class="auth-input" />
+        <button class="btn-primary w100" id="emailAuthSubmit">Kirish</button>
+      </div>
+      <p class="auth-note">Ro'yxatdan o'tish orqali siz <a href="#">Foydalanish shartlari</a> va <a href="#">Maxfiylik siyosati</a> ga rozilik bildirasiz.</p>
+    </div>
+  </div>
+
+  <!-- ORDER MODAL -->
+  <div class="modal-overlay" id="orderModal">
+    <div class="modal-box">
+      <button class="modal-close">✕</button>
+      <h2>Buyurtma berish</h2>
+      <p id="orderGameName" class="order-game"></p>
+      <div class="order-form">
+        <div class="form-group">
+          <label>O'yin ID / Foydalanuvchi nomi</label>
+          <input type="text" placeholder="ID yoki username kiriting" class="auth-input" />
+        </div>
+        <div class="form-group">
+          <label>Miqdor</label>
+          <select class="auth-input">
+            <option>60 UC — 7,500 so'm</option>
+            <option>300 UC — 35,000 so'm</option>
+            <option>600 UC — 65,000 so'm</option>
+            <option>1800 UC — 185,000 so'm</option>
+          </select>
+        </div>
+        <div class="order-total">
+          <span>Jami:</span>
+          <span class="order-price">7,500 so'm</span>
+        </div>
+        <button class="btn-primary w100" id="orderSubmitBtn">To'lov qilish →</button>
+      </div>
+      <p class="auth-note">Buyurtma berishdan oldin hisobingizga kiring.</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="notifications.js"></script>
+</body>
+</html>

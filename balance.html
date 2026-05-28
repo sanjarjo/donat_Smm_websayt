@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Balans | smpin.uz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="site-header" id="siteHeader">
+    <div class="header-inner">
+      <a href="index.html" class="brand">
+        <img src="logo.png" alt="smpin logo" class="brand-logo" />
+        <span class="brand-name">smpin<span class="brand-dot">.uz</span></span>
+      </a>
+      <nav class="nav-links">
+        <a href="topup.html">Top-up</a>
+        <a href="smm.html">SMM</a>
+        <a href="balance.html">Balans</a>
+        <a href="index.html#howit">Qanday ishlaydi</a>
+        <a href="index.html#contact">Aloqa</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn-outline" id="openLogin">Kirish</button>
+        <button class="btn-primary" id="openRegister">Ro'yxatdan o'tish</button>
+      </div>
+      <button class="burger" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE NAV -->
+  <div class="mobile-nav" id="mobileNav">
+    <a href="topup.html" class="mn-link">Top-up</a>
+    <a href="smm.html" class="mn-link">SMM</a>
+    <a href="balance.html" class="mn-link">Balans</a>
+    <a href="index.html#howit" class="mn-link">Qanday ishlaydi</a>
+    <a href="index.html#contact" class="mn-link">Aloqa</a>
+    <div class="mn-actions">
+      <button class="btn-outline w100" id="mobileLogin">Kirish</button>
+      <button class="btn-primary w100" id="mobileRegister">Ro'yxatdan o'tish</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- BALANCE SECTION -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">💰 BALANS BOSHQARISH</span>
+          <h2>Sizning balansingiz</h2>
+          <p>Balansni to'ldiring va buyurtmalaringizni kuzating.</p>
+        </div>
+
+        <div class="balance-card">
+          <h2>Joriy balans</h2>
+          <div class="balance-amount" id="balanceAmount">0 so'm</div>
+        </div>
+
+        <div class="balance-options">
+          <h3>Balans qo'shish usulini tanlang</h3>
+          <div class="replenishment-types">
+            <button class="replenish-btn active" data-type="p2p">
+              💳 P2P O'tkazma
+            </button>
+            <button class="replenish-btn" data-type="atm">
+              🏧 ATM
+            </button>
+            <button class="replenish-btn" data-type="admin">
+              👨‍💼 Admin orqali
+            </button>
+          </div>
+
+          <!-- P2P REPLENISHMENT -->
+          <div class="replenishment-form" id="p2pForm" style="display: block;">
+            <div class="form-group">
+              <label>Miqdorni kiriting (min: 2000, max: 1000000)</label>
+              <input type="number" id="p2pAmount" placeholder="Masalan: 5000" min="2000" max="1000000" class="auth-input" />
+            </div>
+            <div class="card-info">
+              <p>To'lovni quyidagi kartaga o'tkazing:</p>
+              <div class="card-number">9860 0827 1937 9966</div>
+              <p class="card-message" id="cardMessage" style="display: none;">Bu kartaga to'lov qiling</p>
+            </div>
+            <div class="form-group">
+              <label>To'lov kvitansiyasini yuklang (PNG, JPG, PDF)</label>
+              <input type="file" id="p2pReceipt" accept="image/*,.pdf" class="auth-input" />
+            </div>
+            <div class="form-actions">
+              <button class="btn-outline" id="cancelP2P">Bekor qilish</button>
+              <button class="btn-primary" id="submitP2P" style="display: none;">Yuborish</button>
+            </div>
+          </div>
+
+          <!-- ATM REPLENISHMENT -->
+          <div class="replenishment-form" id="atmForm" style="display: none;">
+            <div class="atm-info-box">
+              <h4>ATM dan to'lov qilish</h4>
+              <div class="card-info">
+                <p>Karta raqami:</p>
+                <div class="card-number">9860 0827 1937 9966</div>
+              </div>
+              <div class="phone-info">
+                <p>Paynet filialidan to'lov qilsangiz, telefon raqamni kiriting:</p>
+                <div class="phone-number">+998 91 447 22 40</div>
+              </div>
+              <div class="name-info">
+                <p>Chiqayotgan shaxsning ismi:</p>
+                <div class="person-name">M. Ch.</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Miqdorni kiriting (min: 2000, max: 1000000)</label>
+              <input type="number" id="atmAmount" placeholder="Masalan: 5000" min="2000" max="1000000" class="auth-input" />
+            </div>
+            <div class="form-group">
+              <label>ATM chekini yuklang (PNG, JPG, PDF)</label>
+              <input type="file" id="atmReceipt" accept="image/*,.pdf" class="auth-input" />
+            </div>
+            <div class="form-actions">
+              <button class="btn-outline" id="cancelATM">Bekor qilish</button>
+              <button class="btn-primary" id="submitATM" style="display: none;">Yuborish</button>
+            </div>
+          </div>
+
+          <!-- ADMIN REPLENISHMENT -->
+          <div class="replenishment-form" id="adminForm" style="display: none;">
+            <div class="admin-info-box">
+              <h4>Admin orqali balans qo'shish</h4>
+              <p>Admin bilan bog'lanish uchun Telegramga yozing:</p>
+              <a href="https://t.me/sanjarf" target="_blank" class="admin-link">
+                <strong>@sanjarf</strong>
+              </a>
+              <p class="info-text">Admin sizning so'rovingizni ko'rib, balans qo'shish operatsiyasini amalga oshiradi.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="logo.png" alt="smpin" class="brand-logo" />
+        <div>
+          <p class="footer-name">smpin.uz</p>
+          <p class="footer-tagline">Uzbekiston's #1 SMM & Game Panel</p>
+        </div>
+      </div>
+      <div class="footer-links-grid">
+        <div class="fl-col">
+          <p class="fl-head">Xizmatlar</p>
+          <a href="topup.html">O'yin to'ldirish</a>
+          <a href="smm.html">SMM xizmatlari</a>
+          <a href="balance.html">Balans</a>
+        </div>
+        <div class="fl-col">
+          <p class="fl-head">Kompaniya</p>
+          <a href="#">Biz haqimizda</a>
+          <a href="#">Shartlar</a>
+          <a href="#">Maxfiylik</a>
+        </div>
+        <div class="fl-col">
+          <p class="fl-head">Aloqa</p>
+          <a href="https://t.me/smpinbot">Telegram Bot</a>
+          <a href="https://t.me/smpinbot">Telegram Kanal</a>
+          <a href="mailto:smpinuz@gmail.com">smpinuz@gmail.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 smpin.uz. Barcha huquqlar himoyalangan.</p>
+    </div>
+  </footer>
+
+  <!-- AUTH MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-box">
+      <button class="modal-close">✕</button>
+      <div class="modal-logo">
+        <img src="logo.png" alt="smpin" />
+        <span>smpin.uz</span>
+      </div>
+      <h2 id="authTitle">Xush kelibsiz!</h2>
+      <p id="authDesc">Hisobingizga kiring yoki yangi hisob yarating.</p>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="loginTab">Kirish</button>
+        <button class="auth-tab" id="registerTab">Ro'yxatdan o'tish</button>
+      </div>
+      <div class="auth-social">
+        <button class="auth-btn google" id="googleAuthBtn">
+          <svg width="20" height="20" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.58-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Google bilan <span id="authAction">kirish</span>
+        </button>
+        <button class="auth-btn telegram" id="telegramAuthBtn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z" fill="#29B6F6"/></svg>
+          Telegram bilan <span class="authAction">kirish</span>
+        </button>
+      </div>
+      <div class="auth-divider"><span>yoki</span></div>
+      <div class="auth-form">
+        <input type="email" placeholder="Email manzilingiz" class="auth-input" />
+        <input type="password" placeholder="Parol" class="auth-input" />
+        <button class="btn-primary w100" id="emailAuthSubmit">Kirish</button>
+      </div>
+      <p class="auth-note">Ro'yxatdan o'tish orqali siz <a href="#">Foydalanish shartlari</a> va <a href="#">Maxfiylik siyosati</a> ga rozilik bildirasiz.</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="balance.js"></script>
+  <script src="notifications.js"></script>
+</body>
+</html>"
