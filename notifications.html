@@ -79,43 +79,77 @@
       const backBtn = document.getElementById('backBtn');
       backBtn.addEventListener('click', () => window.history.back());
 
+      const container = document.getElementById('notificationsList');
+
+      function setEmptyMessage(message) {
+        container.textContent = '';
+        const empty = document.createElement('div');
+        empty.className = 'empty-notifications';
+        empty.textContent = message;
+        container.appendChild(empty);
+      }
+
       try {
-        const res = await fetch('/api/notifications');
+        const csrfRes = await fetch('/api/csrf-token');
+        const { csrfToken } = await csrfRes.json();
+        const res = await fetch('/api/notifications', {
+          headers: { 'X-CSRF-Token': csrfToken }
+        });
         if (!res.ok) throw new Error('Failed to load notifications');
         const { notifications } = await res.json();
 
-        const container = document.getElementById('notificationsList');
-        container.innerHTML = '';
+        container.textContent = '';
 
         if (!notifications || notifications.length === 0) {
-          container.innerHTML = '<div class="empty-notifications">Bildirishnomalar yo\'q</div>';
+          setEmptyMessage("Bildirishnomalar yo'q");
           return;
         }
 
         notifications.forEach(notif => {
           const div = document.createElement('div');
-          div.className = `notification-item ${notif.is_read ? '' : 'unread'}`;
+          div.className = 'notification-item' + (notif.is_read ? '' : ' unread');
           const date = new Date(notif.created_at).toLocaleDateString('uz-UZ');
-          
-          div.innerHTML = `
-            <div class="notification-content">
-              <div class="notification-title">${notif.title}</div>
-              <div class="notification-message">${notif.message}</div>
-            </div>
-            <div class="notification-time">${date}</div>
-          `;
+
+          const content = document.createElement('div');
+          content.className = 'notification-content';
+
+          const title = document.createElement('div');
+          title.className = 'notification-title';
+          title.textContent = notif.title;
+
+          const message = document.createElement('div');
+          message.className = 'notification-message';
+          message.textContent = notif.message;
+
+          content.appendChild(title);
+          content.appendChild(message);
+
+          const time = document.createElement('div');
+          time.className = 'notification-time';
+          time.textContent = date;
+
+          div.appendChild(content);
+          div.appendChild(time);
 
           if (!notif.is_read) {
+            div.style.cursor = 'pointer';
             div.addEventListener('click', async () => {
-              await fetch(`/api/notifications/${notif.id}/read`, { method: 'POST' });
-              div.classList.remove('unread');
+              try {
+                await fetch(`/api/notifications/${notif.id}/read`, {
+                  method: 'POST',
+                  headers: { 'X-CSRF-Token': csrfToken }
+                });
+                div.classList.remove('unread');
+              } catch (e) {
+                console.error('Mark as read failed', e);
+              }
             });
           }
 
           container.appendChild(div);
         });
       } catch (err) {
-        document.getElementById('notificationsList').innerHTML = '<div class="empty-notifications">Xatolik: Bildirishnomalarni yuklashda muammo</div>';
+        setEmptyMessage('Xatolik: Bildirishnomalarni yuklashda muammo');
       }
     });
   </script>

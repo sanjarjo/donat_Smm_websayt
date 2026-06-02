@@ -80,12 +80,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      scriptSrcAttr: ["'none'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'", "https://ipapi.co"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: [],
@@ -182,8 +182,13 @@ function initDb() {
       telegram_id TEXT UNIQUE,
       telegram_username TEXT,
       balance INTEGER DEFAULT 0,
+      is_admin INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`, (err) => {
+      // Ignore "duplicate column" error - means it already exists
+    });
 
     db.run(`CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -399,6 +404,30 @@ function getApiConfig(serviceId) {
   return null;
 }
 
+const SMM_SERVICE_CATALOG = {
+  1:  { label: '30 kunlik obunachi', price: 15000, unit: 'package' },
+  2:  { label: '60 kunlik obunachi', price: 18000, unit: 'package' },
+  3:  { label: '90 kunlik obunachi', price: 21000, unit: 'package' },
+  4:  { label: '120 kunlik obunachi', price: 24000, unit: 'package' },
+  5:  { label: '180 kunlik obunachi', price: 30000, unit: 'package' },
+  6:  { label: '365 kunlik obunachi', price: 40000, unit: 'package' },
+  7:  { label: '30 kunlik Uzbek obunachi', price: 20000, unit: 'package' },
+  8:  { label: '90 kunlik Uzbek aralash obunachi', price: 30000, unit: 'package' },
+  9:  { label: 'Oddiy ko\'rishlar', price: 500, unit: 'per1000' },
+  10: { label: 'Instagram Kafolatsiz obunachi', price: 10000, unit: 'per1000' },
+  11: { label: 'Instagram Oddiy Likelar', price: 5000, unit: 'per1000' },
+  12: { label: 'Instagram Oddiy Ko\'rishlar', price: 500, unit: 'per1000' }
+};
+
+function calculateSmmPrice(serviceId, quantity) {
+  const item = SMM_SERVICE_CATALOG[serviceId];
+  if (!item) return null;
+  if (item.unit === 'per1000') {
+    return Math.ceil((item.price / 1000) * quantity);
+  }
+  return item.price * quantity;
+}
+
 async function placeSmmApiOrder(serviceId, link, quantity) {
   const config = getApiConfig(serviceId);
   if (!config) return { provider: 'unknown', api_order_id: null, provider_response: 'No provider mapping.' };
@@ -411,12 +440,17 @@ async function placeSmmApiOrder(serviceId, link, quantity) {
     quantity: String(quantity)
   });
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
   try {
     const response = await fetch(config.url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: payload.toString()
+      body: payload.toString(),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     const text = await response.text();
     let data;
     try { data = JSON.parse(text); } catch (err) { data = { raw: text }; }
@@ -427,6 +461,7 @@ async function placeSmmApiOrder(serviceId, link, quantity) {
       provider_response: JSON.stringify(data)
     };
   } catch (err) {
+    clearTimeout(timeout);
     return {
       provider: config.url,
       api_order_id: null,
@@ -456,12 +491,16 @@ function formatTimestamp(date = new Date()) {
 async function lookupCity(ip) {
   if (!ip) return 'Noxira';
   const cleanIp = ip.replace('::ffff:', '');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
   try {
-    const res = await fetch(`https://ipapi.co/${cleanIp}/city/`);
+    const res = await fetch(`https://ipapi.co/${cleanIp}/city/`, { signal: controller.signal });
+    clearTimeout(timeout);
     if (!res.ok) return 'Noxira';
     const city = (await res.text()).trim();
     return city || 'Noxira';
   } catch {
+    clearTimeout(timeout);
     return 'Noxira';
   }
 }
@@ -726,6 +765,26 @@ function requireAuth(req, res, next) {
   next();
 }
 
+async function isAdminUser(userId) {
+  if (!userId) return false;
+  if (process.env.ADMIN_USER_ID && Number(process.env.ADMIN_USER_ID) === userId) return true;
+  if (process.env.ADMIN_EMAIL) {
+    const u = await getUserById(userId);
+    if (u && u.email && u.email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase()) return true;
+  }
+  try {
+    const row = await new Promise((resolve, reject) => {
+      db.get('SELECT is_admin FROM users WHERE id = ?', [userId], (err, r) => {
+        if (err) return reject(err);
+        resolve(r);
+      });
+    });
+    return !!(row && row.is_admin);
+  } catch {
+    return false;
+  }
+}
+
 app.post('/api/register', registerLimiter, [
   body('email').isEmail().normalizeEmail(),
   body('password').isLength({ min: 8 }).withMessage('Parol kamida 8 ta belgidan iborat bo\'lishi kerak.'),
@@ -861,13 +920,22 @@ app.post('/api/smm-order', orderLimiter, requireAuth, [
     if (!user) return res.status(401).json({ error: 'Foydalanuvchi topilmadi.' });
 
     const { platform, serviceLabel, serviceId, link, quantity, price } = req.body;
+    const serviceIdNum = Number(serviceId);
+    const quantityNum = Number(quantity);
 
-    if (user.balance < Number(price)) {
+    const expectedPrice = calculateSmmPrice(serviceIdNum, quantityNum);
+    if (expectedPrice === null) {
+      return res.status(400).json({ error: 'Xizmat ID noto\'g\'ri.' });
+    }
+    if (Number(price) !== expectedPrice) {
+      return res.status(400).json({ error: 'Narx noto\'g\'ri. Sahifani yangilang.' });
+    }
+
+    if (user.balance < expectedPrice) {
       return res.status(400).json({ error: 'Balans yetarli emas.' });
     }
 
-    // ✅ FIX 4: Tranzaksiya bilan atomic operation
-    const newBalance = user.balance - Number(price);
+    const newBalance = user.balance - expectedPrice;
     await new Promise((resolve, reject) => {
       db.run('BEGIN TRANSACTION', (err) => {
         if (err) return reject(err);
@@ -884,16 +952,16 @@ app.post('/api/smm-order', orderLimiter, requireAuth, [
       });
     });
 
-    const apiResult = await placeSmmApiOrder(Number(serviceId), link, Number(quantity));
+    const apiResult = await placeSmmApiOrder(serviceIdNum, link, quantityNum);
     const order = await createOrder({
       user_id: user.id,
       type: 'smm',
       platform,
       service_label: serviceLabel,
-      service_id: Number(serviceId),
+      service_id: serviceIdNum,
       link,
-      quantity: Number(quantity),
-      price: Number(price),
+      quantity: quantityNum,
+      price: expectedPrice,
       payment_method: 'API SMM',
       balance_before: user.balance,
       balance_after: newBalance,
@@ -902,12 +970,13 @@ app.post('/api/smm-order', orderLimiter, requireAuth, [
       api_order_id: apiResult.api_order_id,
       provider_response: apiResult.provider_response,
       server_info: null,
-      completed: Number(quantity)
+      completed: quantityNum
     });
 
     await sendAdminNotification(buildSmmAdminMessage(order, user), order);
     res.json({ order });
   } catch (err) {
+    console.error('SMM order error:', err);
     res.status(500).json({ error: 'SMM buyurtmasi yuborishda xatolik yuz berdi.' });
   }
 });
@@ -1116,6 +1185,104 @@ app.get('/api/orders', requireAuth, async (req, res) => {
     res.json({ orders });
   } catch (err) {
     res.status(500).json({ error: 'Buyurtmalarni yuklashda xatolik yuz berdi.' });
+  }
+});
+
+app.get('/api/admin/replenishments', requireAuth, async (req, res) => {
+  try {
+    if (!(await isAdminUser(req.session.userId))) {
+      return res.status(403).json({ error: 'Ruxsat yo\'q.' });
+    }
+    const requests = await new Promise((resolve, reject) => {
+      const sql = `SELECT r.*, u.email, u.full_name, u.telegram_username
+                   FROM replenishment_requests r
+                   LEFT JOIN users u ON r.user_id = u.id
+                   ORDER BY r.created_at DESC LIMIT 200`;
+      db.all(sql, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows || []);
+      });
+    });
+    res.json({ requests });
+  } catch (err) {
+    res.status(500).json({ error: 'So\'rovlarni yuklashda xatolik yuz berdi.' });
+  }
+});
+
+app.get('/api/admin/orders', requireAuth, async (req, res) => {
+  try {
+    if (!(await isAdminUser(req.session.userId))) {
+      return res.status(403).json({ error: 'Ruxsat yo\'q.' });
+    }
+    const orders = await new Promise((resolve, reject) => {
+      const sql = `SELECT o.*, u.email, u.full_name, u.telegram_username
+                   FROM orders o
+                   LEFT JOIN users u ON o.user_id = u.id
+                   ORDER BY o.created_at DESC LIMIT 200`;
+      db.all(sql, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows || []);
+      });
+    });
+    res.json({ orders });
+  } catch (err) {
+    res.status(500).json({ error: 'Buyurtmalarni yuklashda xatolik yuz berdi.' });
+  }
+});
+
+app.get('/api/admin/users', requireAuth, async (req, res) => {
+  try {
+    if (!(await isAdminUser(req.session.userId))) {
+      return res.status(403).json({ error: 'Ruxsat yo\'q.' });
+    }
+    const users = await new Promise((resolve, reject) => {
+      const sql = `SELECT id, email, full_name, telegram_username, balance, created_at
+                   FROM users ORDER BY created_at DESC LIMIT 200`;
+      db.all(sql, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows || []);
+      });
+    });
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: 'Foydalanuvchilarni yuklashda xatolik yuz berdi.' });
+  }
+});
+
+app.get('/api/admin/dashboard', requireAuth, async (req, res) => {
+  try {
+    if (!(await isAdminUser(req.session.userId))) {
+      return res.status(403).json({ error: 'Ruxsat yo\'q.' });
+    }
+    const stats = await new Promise((resolve, reject) => {
+      const sql = `
+        SELECT
+          (SELECT COUNT(*) FROM users) AS total_users,
+          (SELECT COUNT(*) FROM orders) AS total_orders,
+          (SELECT COUNT(*) FROM orders WHERE status = 'pending') AS pending_orders,
+          (SELECT COUNT(*) FROM orders WHERE status = 'processing') AS processing_orders,
+          (SELECT COUNT(*) FROM orders WHERE status = 'approved') AS approved_orders,
+          (SELECT COUNT(*) FROM replenishment_requests WHERE status = 'pending') AS pending_replenishments,
+          (SELECT COALESCE(SUM(amount), 0) FROM replenishment_requests WHERE status = 'approved') AS total_replenished,
+          (SELECT COALESCE(SUM(price), 0) FROM orders) AS total_revenue
+      `;
+      db.get(sql, [], (err, row) => {
+        if (err) reject(err);
+        else resolve(row || {});
+      });
+    });
+    res.json({ stats });
+  } catch (err) {
+    res.status(500).json({ error: 'Statistikani yuklashda xatolik yuz berdi.' });
+  }
+});
+
+app.get('/api/admin/check', requireAuth, async (req, res) => {
+  try {
+    const admin = await isAdminUser(req.session.userId);
+    res.json({ isAdmin: admin });
+  } catch (err) {
+    res.json({ isAdmin: false });
   }
 });
 

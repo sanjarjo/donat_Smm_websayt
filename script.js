@@ -259,34 +259,15 @@ async function handleEmailAuth() {
       showToast(data.error || 'Auth xatolik yuz berdi.', 'error');
       return;
     }
-    showToast(authMode === 'register' ? "Muvaffaqiyatli ro'yxatdan o'tdingiz!" : 'Muvaffaqiyatli kiردingiz!', 'success');
+    showToast(authMode === 'register' ? "Muvaffaqiyatli ro'yxatdan o'tdingiz!" : 'Muvaffaqiyatli kirdingiz!', 'success');
     closeAllModals();
-    setTimeout(() => window.location.reload(), 1000);
-  } catch (err) {
-    showToast('Auth soʻrovida xatolik yuz berdi.', 'error');
-  }
-  try {
-    const response = await fetch(route, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      showToast(data.error || 'Autentifikatsiyada xatolik.', 'error');
-      return;
-    }
-    closeAllModals();
-    showToast(data.user ? 'Tizimga muvaffaqiyatli kirdingiz.' : 'Amal bajarildi.', 'success');
     
-    // QO'SHILISHI KERAK BO'LGAN YONALTIRISH KODI:
+    // Redirect to dashboard after successful auth
     setTimeout(() => {
       window.location.href = 'dashboard.html';
     }, 1000);
-    // SHU YERGACHA
-
   } catch (err) {
-    showToast('Autentifikatsiyada xatolik yuz berdi.', 'error');
+    showToast('Auth sorovida xatolik yuz berdi.', 'error');
   }
 }
 
@@ -407,6 +388,7 @@ document.querySelectorAll('.game-card, .smm-card, .plan-card, .review-card').for
     card.style.setProperty('--my', y + '%');
   });
 });
+
 // ── AUTH STATUS VA DUMALOQ AVATAR (YANGI QO'SHILGAN KOD) ──
 
 // Sayt yuklanganda ishga tushadi
@@ -427,39 +409,77 @@ document.addEventListener('DOMContentLoaded', async () => {
 function updateHeaderForLoggedInUser(user) {
   const headerActions = document.querySelector('.header-actions');
   const mnActions = document.querySelector('.mn-actions');
-  
+
   // Ismning yoki emailning birinchi harfini ajratib olish (Avatar uchun)
   const initial = (user.full_name || user.email || 'U').charAt(0).toUpperCase();
+  const displayName = user.full_name || user.email || 'Foydalanuvchi';
+  const balanceText = (user.balance || 0).toLocaleString() + " so'm";
 
   // Desktop versiyasi uchun avatar va ochiladigan menyu (dropdown)
   if (headerActions) {
-    headerActions.innerHTML = `
-      <div class="user-profile">
-        <div class="avatar" id="avatarBtn">${initial}</div>
-        <div class="profile-dropdown" id="profileDropdown">
-          <div class="dropdown-header">
-            <strong>${user.full_name || user.email}</strong>
-            <span>${(user.balance || 0).toLocaleString()} so'm</span>
-          </div>
-          <a href="dashboard.html" class="dropdown-item">Dashboard</a>
-          <button class="dropdown-item text-danger" id="logoutBtn">Chiqish</button>
-        </div>
-      </div>
-    `;
-    const avatarBtn = document.getElementById('avatarBtn');
-    if (avatarBtn) avatarBtn.addEventListener('click', toggleProfileDropdown);
+    headerActions.textContent = '';
 
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.addEventListener('click', logoutUser);
+    const userProfile = document.createElement('div');
+    userProfile.className = 'user-profile';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.id = 'avatarBtn';
+    avatar.textContent = initial;
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'profile-dropdown';
+    dropdown.id = 'profileDropdown';
+
+    const dropdownHeader = document.createElement('div');
+    dropdownHeader.className = 'dropdown-header';
+    const nameEl = document.createElement('strong');
+    nameEl.textContent = displayName;
+    const balanceEl = document.createElement('span');
+    balanceEl.textContent = balanceText;
+    dropdownHeader.appendChild(nameEl);
+    dropdownHeader.appendChild(balanceEl);
+
+    const dashLink = document.createElement('a');
+    dashLink.href = 'dashboard.html';
+    dashLink.className = 'dropdown-item';
+    dashLink.textContent = 'Dashboard';
+
+    const logoutBtn = document.createElement('button');
+    logoutBtn.className = 'dropdown-item text-danger';
+    logoutBtn.id = 'logoutBtn';
+    logoutBtn.textContent = 'Chiqish';
+
+    dropdown.appendChild(dropdownHeader);
+    dropdown.appendChild(dashLink);
+    dropdown.appendChild(logoutBtn);
+
+    userProfile.appendChild(avatar);
+    userProfile.appendChild(dropdown);
+    headerActions.appendChild(userProfile);
+
+    avatar.addEventListener('click', toggleProfileDropdown);
+    logoutBtn.addEventListener('click', logoutUser);
   }
 
   if (mnActions) {
-    mnActions.innerHTML = `
-      <a href="dashboard.html" class="btn-primary w100 text-center" style="display:block;margin-bottom:10px;">Dashboard</a>
-      <button class="btn-outline w100 text-danger" id="mobileLogoutBtn">Chiqish</button>
-    `;
-    const mobileLogout = document.getElementById('mobileLogoutBtn');
-    if (mobileLogout) mobileLogout.addEventListener('click', logoutUser);
+    mnActions.textContent = '';
+
+    const dashLink = document.createElement('a');
+    dashLink.href = 'dashboard.html';
+    dashLink.className = 'btn-primary w100 text-center';
+    dashLink.style.display = 'block';
+    dashLink.style.marginBottom = '10px';
+    dashLink.textContent = 'Dashboard';
+
+    const logoutBtn = document.createElement('button');
+    logoutBtn.className = 'btn-outline w100 text-danger';
+    logoutBtn.id = 'mobileLogoutBtn';
+    logoutBtn.textContent = 'Chiqish';
+
+    mnActions.appendChild(dashLink);
+    mnActions.appendChild(logoutBtn);
+    logoutBtn.addEventListener('click', logoutUser);
   }
 }
 
@@ -482,7 +502,13 @@ window.addEventListener('click', (e) => {
 // Tizimdan chiqish (Logout)
 async function logoutUser() {
   try {
-    await fetch('/api/logout', { method: 'POST' });
+    const csrfRes = await fetch('/api/csrf-token');
+    const { csrfToken } = await csrfRes.json();
+    await fetch('/api/logout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+      body: JSON.stringify({ _csrf: csrfToken })
+    });
   } catch (err) {
     console.warn('Logout failed:', err);
   }

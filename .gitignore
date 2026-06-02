@@ -6,6 +6,8 @@ node_modules/
 
 # Database
 database.sqlite
+sessions.sqlite
+*.sqlite
 
 # Uploaded receipt files
 uploads/

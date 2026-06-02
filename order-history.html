@@ -101,36 +101,65 @@
       const backBtn = document.getElementById('backBtn');
       backBtn.addEventListener('click', () => window.history.back());
 
+      const tbody = document.getElementById('ordersList');
+      const emptyState = document.getElementById('emptyState');
+
+      function setErrorRow(message) {
+        tbody.textContent = '';
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 7;
+        cell.style.textAlign = 'center';
+        cell.style.color = 'red';
+        cell.textContent = message;
+        row.appendChild(cell);
+        tbody.appendChild(row);
+      }
+
       try {
         const res = await fetch('/api/orders');
         if (!res.ok) throw new Error('Failed to load orders');
         const { orders } = await res.json();
 
-        const tbody = document.getElementById('ordersList');
-        tbody.innerHTML = '';
+        tbody.textContent = '';
 
         if (!orders || orders.length === 0) {
-          document.getElementById('ordersList').parentElement.style.display = 'none';
-          document.getElementById('emptyState').style.display = 'block';
+          tbody.parentElement.style.display = 'none';
+          emptyState.style.display = 'block';
           return;
         }
 
         orders.forEach(order => {
           const row = document.createElement('tr');
           const date = new Date(order.created_at).toLocaleDateString('uz-UZ');
-          row.innerHTML = `
-            <td>#${order.id}</td>
-            <td>${order.type === 'smm' ? '📱 SMM' : '🎮 Top-up'}</td>
-            <td>${order.platform}</td>
-            <td>${order.service_label}</td>
-            <td>${order.price.toLocaleString()} so'm</td>
-            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-            <td>${date}</td>
-          `;
+
+          const cells = [
+            `#${order.id}`,
+            order.type === 'smm' ? '📱 SMM' : '🎮 Top-up',
+            order.platform || '-',
+            order.service_label || '-',
+            `${(order.price || 0).toLocaleString()} so'm`,
+            null,
+            date
+          ];
+
+          cells.forEach((value, idx) => {
+            const td = document.createElement('td');
+            if (idx === 5) {
+              const badge = document.createElement('span');
+              badge.className = `status-badge status-${order.status || 'pending'}`;
+              badge.textContent = order.status || 'pending';
+              td.appendChild(badge);
+            } else {
+              td.textContent = value;
+            }
+            row.appendChild(td);
+          });
+
           tbody.appendChild(row);
         });
       } catch (err) {
-        document.getElementById('ordersList').innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Xatolik: Buyurtmalarni yuklashda muammo</td></tr>';
+        setErrorRow('Xatolik: Buyurtmalarni yuklashda muammo');
       }
     });
   </script>

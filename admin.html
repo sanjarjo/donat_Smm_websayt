@@ -163,25 +163,253 @@
 
   <script src="notifications.js"></script>
   <script>
-    // Simple admin check - replace with proper JWT/session auth
-    document.addEventListener('DOMContentLoaded', () => {
-      // Redirect if not logged in (this is basic - should use proper auth)
-      const logoutBtn = document.getElementById('logoutBtn');
-      logoutBtn.addEventListener('click', async () => {
-        await fetch('/api/logout', { method: 'POST' });
-        window.location.href = '/';
-      });
+    document.addEventListener('DOMContentLoaded', async () => {
+      async function getCsrfToken() {
+        const r = await fetch('/api/csrf-token');
+        const { csrfToken } = await r.json();
+        return csrfToken;
+      }
 
-      // Load data on tab switch
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-          document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-          btn.classList.add('active');
-          const tab = btn.dataset.tab;
-          document.getElementById(tab).classList.add('active');
+      async function authedFetch(url, opts = {}) {
+        const token = await getCsrfToken();
+        const headers = Object.assign(
+          { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
+          opts.headers || {}
+        );
+        const res = await fetch(url, Object.assign({}, opts, { headers }));
+        if (res.status === 401) {
+          window.location.href = 'index.html';
+          return null;
+        }
+        if (res.status === 403) {
+          window.location.href = 'index.html';
+          return null;
+        }
+        return res;
+      }
+
+      try {
+        const checkRes = await authedFetch('/api/admin/check');
+        if (!checkRes) return;
+        const { isAdmin } = await checkRes.json();
+        if (!isAdmin) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn.addEventListener('click', async () => {
+          const token = await getCsrfToken();
+          await fetch('/api/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
+            body: JSON.stringify({ _csrf: token })
+          });
+          window.location.href = 'index.html';
         });
-      });
+
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            tabButtons.forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            const tab = btn.dataset.tab;
+            document.getElementById(tab).classList.add('active');
+            if (tab === 'replenishment') loadReplenishments();
+            else if (tab === 'orders') loadOrders();
+            else if (tab === 'users') loadUsers();
+          });
+        });
+
+        async function loadReplenishments() {
+          const tbody = document.getElementById('replenishmentList');
+          tbody.textContent = '';
+          const loading = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.colSpan = 6;
+          cell.style.textAlign = 'center';
+          cell.textContent = 'Yuklanmoqda...';
+          loading.appendChild(cell);
+          tbody.appendChild(loading);
+
+          try {
+            const res = await authedFetch('/api/admin/replenishments');
+            if (!res) return;
+            const { requests } = await res.json();
+            tbody.textContent = '';
+            if (!requests || requests.length === 0) {
+              const row = document.createElement('tr');
+              const c = document.createElement('td');
+              c.colSpan = 6;
+              c.style.textAlign = 'center';
+              c.textContent = "So'rovlar yo'q";
+              row.appendChild(c);
+              tbody.appendChild(row);
+              return;
+            }
+            requests.forEach(r => {
+              const row = document.createElement('tr');
+              const cells = [
+                `#${r.id}`,
+                r.email || r.full_name || `User #${r.user_id}`,
+                (r.amount || 0).toLocaleString() + " so'm",
+                r.type || '-',
+                null,
+                new Date(r.created_at).toLocaleString('uz-UZ')
+              ];
+              cells.forEach((val, idx) => {
+                const td = document.createElement('td');
+                if (idx === 4) {
+                  const badge = document.createElement('span');
+                  badge.className = `status-badge status-${r.status}`;
+                  badge.textContent = r.status;
+                  td.appendChild(badge);
+                } else {
+                  td.textContent = val;
+                }
+                row.appendChild(td);
+              });
+              tbody.appendChild(row);
+            });
+          } catch (e) {
+            tbody.textContent = '';
+            const row = document.createElement('tr');
+            const c = document.createElement('td');
+            c.colSpan = 6;
+            c.style.textAlign = 'center';
+            c.style.color = 'red';
+            c.textContent = 'Xatolik';
+            row.appendChild(c);
+            tbody.appendChild(row);
+          }
+        }
+
+        async function loadOrders() {
+          const tbody = document.getElementById('ordersList');
+          tbody.textContent = '';
+          const loading = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.colSpan = 7;
+          cell.style.textAlign = 'center';
+          cell.textContent = 'Yuklanmoqda...';
+          loading.appendChild(cell);
+          tbody.appendChild(loading);
+
+          try {
+            const res = await authedFetch('/api/admin/orders');
+            if (!res) return;
+            const { orders } = await res.json();
+            tbody.textContent = '';
+            if (!orders || orders.length === 0) {
+              const row = document.createElement('tr');
+              const c = document.createElement('td');
+              c.colSpan = 7;
+              c.style.textAlign = 'center';
+              c.textContent = 'Buyurtmalar yoq';
+              row.appendChild(c);
+              tbody.appendChild(row);
+              return;
+            }
+            orders.forEach(o => {
+              const row = document.createElement('tr');
+              const cells = [
+                `#${o.id}`,
+                o.email || `User #${o.user_id}`,
+                o.type || '-',
+                o.platform || '-',
+                (o.price || 0).toLocaleString() + " so'm",
+                null,
+                new Date(o.created_at).toLocaleString('uz-UZ')
+              ];
+              cells.forEach((val, idx) => {
+                const td = document.createElement('td');
+                if (idx === 5) {
+                  const badge = document.createElement('span');
+                  badge.className = `status-badge status-${o.status}`;
+                  badge.textContent = o.status;
+                  td.appendChild(badge);
+                } else {
+                  td.textContent = val;
+                }
+                row.appendChild(td);
+              });
+              tbody.appendChild(row);
+            });
+          } catch (e) {
+            tbody.textContent = '';
+            const row = document.createElement('tr');
+            const c = document.createElement('td');
+            c.colSpan = 7;
+            c.style.textAlign = 'center';
+            c.style.color = 'red';
+            c.textContent = 'Xatolik';
+            row.appendChild(c);
+            tbody.appendChild(row);
+          }
+        }
+
+        async function loadUsers() {
+          const tbody = document.getElementById('usersList');
+          tbody.textContent = '';
+          const loading = document.createElement('tr');
+          const cell = document.createElement('td');
+          cell.colSpan = 6;
+          cell.style.textAlign = 'center';
+          cell.textContent = 'Yuklanmoqda...';
+          loading.appendChild(cell);
+          tbody.appendChild(loading);
+
+          try {
+            const res = await authedFetch('/api/admin/users');
+            if (!res) return;
+            const { users } = await res.json();
+            tbody.textContent = '';
+            if (!users || users.length === 0) {
+              const row = document.createElement('tr');
+              const c = document.createElement('td');
+              c.colSpan = 6;
+              c.style.textAlign = 'center';
+              c.textContent = 'Foydalanuvchilar yoq';
+              row.appendChild(c);
+              tbody.appendChild(row);
+              return;
+            }
+            users.forEach(u => {
+              const row = document.createElement('tr');
+              const cells = [
+                `#${u.id}`,
+                u.full_name || '-',
+                u.email || '-',
+                u.telegram_username || '-',
+                (u.balance || 0).toLocaleString() + " so'm",
+                new Date(u.created_at).toLocaleDateString('uz-UZ')
+              ];
+              cells.forEach(val => {
+                const td = document.createElement('td');
+                td.textContent = val;
+                row.appendChild(td);
+              });
+              tbody.appendChild(row);
+            });
+          } catch (e) {
+            tbody.textContent = '';
+            const row = document.createElement('tr');
+            const c = document.createElement('td');
+            c.colSpan = 6;
+            c.style.textAlign = 'center';
+            c.style.color = 'red';
+            c.textContent = 'Xatolik';
+            row.appendChild(c);
+            tbody.appendChild(row);
+          }
+        }
+
+        loadReplenishments();
+      } catch (err) {
+        console.error('Admin load error:', err);
+        window.location.href = 'index.html';
+      }
     });
   </script>
 </body>

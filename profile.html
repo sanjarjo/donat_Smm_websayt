@@ -116,21 +116,38 @@
 
       const logoutBtn = document.getElementById('logoutBtn');
       logoutBtn.addEventListener('click', async () => {
-        await fetch('/api/logout', { method: 'POST' });
+        try {
+          const csrfRes = await fetch('/api/csrf-token');
+          const { csrfToken } = await csrfRes.json();
+          await fetch('/api/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+            body: JSON.stringify({ _csrf: csrfToken })
+          });
+        } catch (err) {
+          console.warn('Logout failed:', err);
+        }
         window.location.href = '/';
       });
 
       try {
         const res = await fetch('/api/user');
+        if (!res.ok) {
+          window.location.href = 'index.html';
+          return;
+        }
         const { user } = await res.json();
         if (user) {
           document.getElementById('emailField').value = user.email || 'Mavjud emas';
           document.getElementById('nameField').value = user.full_name || 'Mavjud emas';
-          document.getElementById('telegramField').value = user.telegram_username || 'Bog\'langan emas';
-          document.getElementById('balanceAmount').textContent = (user.balance || 0).toLocaleString() + ' so\'m';
+          document.getElementById('telegramField').value = user.telegram_username || "Bog'lanmagan";
+          document.getElementById('balanceAmount').textContent = (user.balance || 0).toLocaleString() + " so'm";
+        } else {
+          window.location.href = 'index.html';
         }
       } catch (err) {
         console.error('Profile loading error:', err);
+        window.location.href = 'index.html';
       }
     });
   </script>

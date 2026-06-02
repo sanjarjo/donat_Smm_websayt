@@ -20,12 +20,12 @@ document.addEventListener('DOMContentLoaded', function() {
     btn.addEventListener('click', function() {
       replenishBtns.forEach(b => b.classList.remove('active'));
       this.classList.add('active');
-      
+
       const type = this.dataset.type;
       p2pForm.style.display = type === 'p2p' ? 'block' : 'none';
       atmForm.style.display = type === 'atm' ? 'block' : 'none';
       adminForm.style.display = type === 'admin' ? 'block' : 'none';
-      
+
       p2pAmount.value = '';
       p2pReceipt.value = '';
       atmReceipt.value = '';
@@ -46,19 +46,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  atmReceipt.addEventListener('change', function() {
-    const hasReceipt = this.files.length > 0;
+  atmReceipt.addEventListener('change', updateAtmSubmitVisibility);
+  atmAmount.addEventListener('input', updateAtmSubmitVisibility);
+
+  function updateAtmSubmitVisibility() {
+    const hasReceipt = atmReceipt.files.length > 0;
     const atmAmountValue = parseFloat(atmAmount.value);
     const hasValidAmount = atmAmountValue >= 2000 && atmAmountValue <= 1000000;
     submitATM.style.display = (hasReceipt && hasValidAmount) ? 'inline-block' : 'none';
-  });
-
-  atmAmount.addEventListener('input', function() {
-    const amount = parseFloat(this.value);
-    const hasReceipt = atmReceipt.files.length > 0;
-    const hasValidAmount = amount >= 2000 && amount <= 1000000;
-    submitATM.style.display = (hasReceipt && hasValidAmount) ? 'inline-block' : 'none';
-  });
+  }
 
   cancelP2P.addEventListener('click', function() {
     p2pAmount.value = '';
@@ -75,6 +71,56 @@ document.addEventListener('DOMContentLoaded', function() {
     showToast('Bekor qilindi', 'info');
   });
 
+  async function getCsrfToken() {
+    try {
+      const res = await fetch('/api/csrf-token');
+      const { csrfToken } = await res.json();
+      return csrfToken || '';
+    } catch {
+      return '';
+    }
+  }
+
+  function validateFile(file) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      showToast('Faqat PNG, JPG, GIF va PDF fayllari qabul qilinadi', 'error');
+      return false;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Fayl 5MB dan kichik bolishi kerak', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  async function submitReplenishment(type, amount, file, onSuccess) {
+    const csrfToken = await getCsrfToken();
+    const formData = new FormData();
+    formData.append('receipt', file);
+    formData.append('amount', String(Math.round(amount)));
+    formData.append('type', type);
+    formData.append('_csrf', csrfToken);
+
+    try {
+      const res = await fetch('/api/replenishment-order', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': csrfToken },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(type === 'p2p' ? 'P2P sorovi adminga yuborildi!' : 'ATM sorovi adminga yuborildi!', 'success');
+        onSuccess && onSuccess();
+        loadBalance();
+      } else {
+        showToast(data.error || 'Xatolik yuz berdi', 'error');
+      }
+    } catch (err) {
+      showToast('Sorrovni yuborishda xatolik yuz berdi', 'error');
+    }
+  }
+
   submitP2P.addEventListener('click', async function() {
     const amount = parseFloat(p2pAmount.value);
     if (!amount || amount < 2000 || amount > 1000000) {
@@ -82,50 +128,20 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     if (!p2pReceipt.files.length) {
-      showToast('Iltimos, tòlov kvitansiyasini yuklang', 'error');
+      showToast("Iltimos, to'lov kvitansiyasini yuklang", 'error');
       return;
     }
     const file = p2pReceipt.files[0];
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      showToast('Faqat PNG, JPG, GIF va PDF fayllari qabul qilinadi', 'error');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('Fayl 5MB dan kichik bolishi kerak', 'error');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      try {
-        const receipt = e.target.result;
-        const csrfToken = await (async () => {
-          try {
-            const res = await fetch('/api/csrf-token');
-            const { csrfToken } = await res.json();
-            return csrfToken;
-          } catch { return ''; }
-        })();
-        const res = await fetch('/api/replenishment-order', {
-          method: 'POST',
-          headers: { 'X-CSRF-Token': csrfToken },
-          body: JSON.stringify({ amount, type: 'p2p', receipt, _csrf: csrfToken })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          showToast('P2P sòrovi adminga yuborildi!', 'success');
-          p2pAmount.value = '';
-          p2pReceipt.value = '';
-          cardMessage.style.display = 'none';
-          submitP2P.style.display = 'none';
-        } else {
-          showToast(data.error || 'Xatolik yuz berdi', 'error');
-        }
-      } catch (err) {
-        showToast('Sòrovni yuborishda xatolik yuz berdi', 'error');
-      }
-    };
-    reader.readAsDataURL(file);
+    if (!validateFile(file)) return;
+
+    submitP2P.disabled = true;
+    await submitReplenishment('p2p', amount, file, () => {
+      p2pAmount.value = '';
+      p2pReceipt.value = '';
+      cardMessage.style.display = 'none';
+    });
+    submitP2P.disabled = false;
+    submitP2P.style.display = 'none';
   });
 
   submitATM.addEventListener('click', async function() {
@@ -139,45 +155,15 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     const file = atmReceipt.files[0];
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
-    if (!allowedTypes.includes(file.type)) {
-      showToast('Faqat PNG, JPG, GIF va PDF fayllari qabul qilinadi', 'error');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('Fayl 5MB dan kichik bolishi kerak', 'error');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      try {
-        const receipt = e.target.result;
-        const csrfToken = await (async () => {
-          try {
-            const res = await fetch('/api/csrf-token');
-            const { csrfToken } = await res.json();
-            return csrfToken;
-          } catch { return ''; }
-        })();
-        const res = await fetch('/api/replenishment-order', {
-          method: 'POST',
-          headers: { 'X-CSRF-Token': csrfToken },
-          body: JSON.stringify({ amount, type: 'atm', receipt, _csrf: csrfToken })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          showToast('ATM sòrovi adminga yuborildi!', 'success');
-          atmAmount.value = '';
-          atmReceipt.value = '';
-          submitATM.style.display = 'none';
-        } else {
-          showToast(data.error || 'Xatolik yuz berdi', 'error');
-        }
-      } catch (err) {
-        showToast('Sòrovni yuborishda xatolik yuz berdi', 'error');
-      }
-    };
-    reader.readAsDataURL(file);
+    if (!validateFile(file)) return;
+
+    submitATM.disabled = true;
+    await submitReplenishment('atm', amount, file, () => {
+      atmAmount.value = '';
+      atmReceipt.value = '';
+    });
+    submitATM.disabled = false;
+    submitATM.style.display = 'none';
   });
 
   loadBalance();
@@ -190,7 +176,7 @@ async function loadBalance() {
     const data = await res.json();
     const balanceAmount = document.getElementById('balanceAmount');
     if (balanceAmount) {
-      balanceAmount.textContent = (data.user?.balance || 0).toLocaleString() + ' so\'m';
+      balanceAmount.textContent = (data.user?.balance || 0).toLocaleString() + " so'm";
     }
   } catch (err) {
     console.error('Error loading balance:', err);

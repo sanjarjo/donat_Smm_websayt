@@ -27,7 +27,7 @@
         <a href="index.html#contact">Aloqa</a>
       </nav>
       <div class="header-actions">
-        <button class="btn-outline" onclick="logout()">Chiqish</button>
+        <button class="btn-outline" id="logoutBtn">Chiqish</button>
       </div>
       <button class="burger" id="burger" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -44,7 +44,7 @@
     <a href="index.html#howit" class="mn-link">Qanday ishlaydi</a>
     <a href="index.html#contact" class="mn-link">Aloqa</a>
     <div class="mn-actions">
-      <button class="btn-outline w100" onclick="logout()">Chiqish</button>
+      <button class="btn-outline w100" id="mobileLogoutBtn">Chiqish</button>
     </div>
   </div>
 
@@ -61,19 +61,19 @@
         <div class="dashboard-stats">
           <div class="stat-card">
             <h3>Joriy balans</h3>
-            <div class="stat-value">15,000 so'm</div>
+            <div class="stat-value" id="dashboardBalance">0 so'm</div>
           </div>
           <div class="stat-card">
             <h3>Jami buyurtmalar</h3>
-            <div class="stat-value">12</div>
+            <div class="stat-value" id="totalOrders">0</div>
           </div>
           <div class="stat-card">
             <h3>Bajarilgan</h3>
-            <div class="stat-value">10</div>
+            <div class="stat-value" id="completedOrders">0</div>
           </div>
           <div class="stat-card">
             <h3>Jarayonda</h3>
-            <div class="stat-value">2</div>
+            <div class="stat-value" id="pendingOrders">0</div>
           </div>
         </div>
       </div>
@@ -96,33 +96,7 @@
             <div>Status</div>
             <div>Sana</div>
           </div>
-
-          <div class="order-row">
-            <div>#12345</div>
-            <div>PUBG Mobile UC</div>
-            <div>660</div>
-            <div>35,000 so'm</div>
-            <div><span class="status completed">Bajarildi</span></div>
-            <div>2026-05-01</div>
-          </div>
-
-          <div class="order-row">
-            <div>#12346</div>
-            <div>Instagram Followers</div>
-            <div>1000</div>
-            <div>80,000 so'm</div>
-            <div><span class="status pending">Jarayonda</span></div>
-            <div>2026-05-02</div>
-          </div>
-
-          <div class="order-row">
-            <div>#12347</div>
-            <div>Mobile Legends Diamonds</div>
-            <div>250</div>
-            <div>35,000 so'm</div>
-            <div><span class="status completed">Bajarildi</span></div>
-            <div>2026-05-03</div>
-          </div>
+          <div id="ordersTable"></div>
         </div>
       </div>
     </section>
@@ -198,14 +172,104 @@
   <script src="script.js"></script>
   <script src="notifications.js"></script>
   <script>
-    async function logout() {
+    document.addEventListener('DOMContentLoaded', async () => {
       try {
-        await fetch('/api/logout', { method: 'POST' });
+        const userRes = await fetch('/api/user');
+        if (!userRes.ok) {
+          window.location.href = 'index.html';
+          return;
+        }
+        const { user } = await userRes.json();
+        if (!user) {
+          window.location.href = 'index.html';
+          return;
+        }
+
+        const heading = document.querySelector('.dashboard-header h1');
+        if (heading) heading.textContent = `Xush kelibsiz, ${user.full_name || user.email || 'Foydalanuvchi'}!`;
+
+        const balanceEl = document.getElementById('dashboardBalance');
+        if (balanceEl) balanceEl.textContent = (user.balance || 0).toLocaleString() + " so'm";
+
+        async function logout() {
+          try {
+            const csrfRes = await fetch('/api/csrf-token');
+            const { csrfToken } = await csrfRes.json();
+            await fetch('/api/logout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+              body: JSON.stringify({ _csrf: csrfToken })
+            });
+          } catch (err) {
+            console.warn('Logout request failed:', err);
+          }
+          window.location.href = 'index.html';
+        }
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+        if (logoutBtn) logoutBtn.addEventListener('click', logout);
+        if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', logout);
+
+        const ordersRes = await fetch('/api/orders');
+        const { orders } = ordersRes.ok ? await ordersRes.json() : { orders: [] };
+
+        const totalOrdersEl = document.getElementById('totalOrders');
+        const completedOrdersEl = document.getElementById('completedOrders');
+        const pendingOrdersEl = document.getElementById('pendingOrders');
+        if (totalOrdersEl) totalOrdersEl.textContent = (orders || []).length;
+        if (completedOrdersEl) {
+          completedOrdersEl.textContent = (orders || []).filter(o => o.status === 'approved' || o.status === 'completed').length;
+        }
+        if (pendingOrdersEl) {
+          pendingOrdersEl.textContent = (orders || []).filter(o => o.status === 'pending' || o.status === 'processing').length;
+        }
+
+        const ordersTable = document.getElementById('ordersTable');
+        if (ordersTable) {
+          ordersTable.textContent = '';
+          if (!orders || orders.length === 0) {
+            const empty = document.createElement('div');
+            empty.style.padding = '24px';
+            empty.style.textAlign = 'center';
+            empty.style.color = 'var(--muted)';
+            empty.textContent = "Hozircha buyurtmalar yo'q";
+            ordersTable.appendChild(empty);
+          } else {
+            orders.slice(0, 10).forEach(order => {
+              const row = document.createElement('div');
+              row.className = 'order-row';
+
+              const cells = [
+                `#${order.id}`,
+                order.service_label || order.platform || '-',
+                String(order.quantity || 1),
+                `${(order.price || 0).toLocaleString()} so'm`,
+                null,
+                new Date(order.created_at).toLocaleDateString('uz-UZ')
+              ];
+
+              cells.forEach((val, idx) => {
+                const cell = document.createElement('div');
+                if (idx === 4) {
+                  const status = document.createElement('span');
+                  status.className = `status ${order.status || 'pending'}`;
+                  status.textContent = order.status || 'pending';
+                  cell.appendChild(status);
+                } else {
+                  cell.textContent = val;
+                }
+                row.appendChild(cell);
+              });
+              ordersTable.appendChild(row);
+            });
+          }
+        }
       } catch (err) {
-        console.warn('Logout request failed:', err);
+        console.error('Dashboard load error:', err);
+        window.location.href = 'index.html';
       }
-      window.location.href = 'index.html';
-    }
+    });
   </script>
 </body>
 </html>

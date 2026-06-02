@@ -101,7 +101,13 @@ function toggleNotificationPanel() {
 
 async function markNotificationAsRead(notifId) {
   try {
-    await fetch(`/api/notifications/${notifId}/read`, { method: 'POST' });
+    const csrfRes = await fetch('/api/csrf-token');
+    const { csrfToken } = await csrfRes.json();
+    await fetch(`/api/notifications/${notifId}/read`, {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _csrf: csrfToken })
+    });
     loadNotifications();
   } catch (err) {
     console.error('Error marking notification as read:', err);
