@@ -128,6 +128,9 @@ const orderLimiter = rateLimit({
 });
 
 // Session configuration with production-aware security
+// OWASP-aligned: HttpOnly prevents XSS theft, Secure over HTTPS only,
+// SameSite=Strict provides strongest CSRF protection.
+// Note: if using cross-site OAuth providers that require Lax, override via SESSION_SAME_SITE env.
 app.use(session({
   store: new SQLiteStore({
     db: 'sessions.sqlite',
@@ -139,7 +142,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: process.env.SESSION_SAME_SITE || 'strict',
     secure: process.env.NODE_ENV === 'production',
     maxAge: 7 * 24 * 60 * 60 * 1000
   }

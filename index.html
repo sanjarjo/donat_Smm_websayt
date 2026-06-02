@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="cookie-consent.css" />
 </head>
 <body>
 
@@ -289,7 +290,8 @@
           <p class="fl-head">Kompaniya</p>
           <a href="#">Biz haqimizda</a>
           <a href="#">Shartlar</a>
-          <a href="#">Maxfiylik</a>
+          <a href="#" id="openCookieSettings">Cookie sozlamalari</a>
+          <a href="cookie-dev.html">Dasturchi</a>
         </div>
         <div class="fl-col">
           <p class="fl-head">Aloqa</p>
@@ -377,5 +379,16 @@
 
   <script src="script.js"></script>
   <script src="notifications.js"></script>
+  <script src="cookie-utils.js"></script>
+  <script src="cookie-consent.js"></script>
+  <script src="cookie-theme.js"></script>
+  <script src="cookie-language.js"></script>
+  <script src="cookie-session.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const btn = document.getElementById('openCookieSettings');
+      if (btn) btn.addEventListener('click', function (e) { e.preventDefault(); window.CookieConsent.showSettings(); });
+    });
+  </script>
 </body>
 </html>

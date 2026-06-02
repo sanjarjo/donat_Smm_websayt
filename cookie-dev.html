@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0a0e1a" />
+  <title>Cookie System — Developer Console | smpin.uz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="cookie-consent.css" />
+  <style>
+    body { background: var(--cc-bg); color: var(--cc-fg); }
+  </style>
+</head>
+<body>
+
+  <div class="cookie-dev">
+    <h1>🍪 Cookie tizimi — Dasturchi konsoli</h1>
+    <p class="lead">
+      Bu sahifa barcha cookie tizimini ko'rish, sinash va boshqarish uchun mo'ljallangan.
+      Faqat development muhitida ishlating. Production'da yoqib bo'lmaydi.
+    </p>
+
+    <!-- SUMMARY -->
+    <div class="card" style="margin-bottom:16px;">
+      <h2>Umumiy holat</h2>
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div>
+          <div class="pill" id="statTotal">0 ta</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--cc-muted);">Jami cookie</div>
+        </div>
+        <div>
+          <div class="pill" id="statConsent">—</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--cc-muted);">Rozilik</div>
+        </div>
+        <div>
+          <div class="pill" id="statTheme">—</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--cc-muted);">Mavzu</div>
+        </div>
+        <div>
+          <div class="pill" id="statLang">—</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--cc-muted);">Til</div>
+        </div>
+        <div>
+          <div class="pill" id="statSession">—</div>
+          <div style="margin-top:4px; font-size:12px; color:var(--cc-muted);">Sessiya</div>
+        </div>
+      </div>
+      <div class="row controls" style="margin-top:14px;">
+        <button class="primary" id="btnRunTests">▶ Testlarni ishga tushirish</button>
+        <button id="btnRefresh">↻ Yangilash</button>
+        <button id="btnOpenSettings">⚙ Sozlamalar</button>
+        <button id="btnShowBanner">📋 Banner ko'rsatish</button>
+        <button class="danger" id="btnClearAll">🗑 Barchasini tozalash</button>
+      </div>
+    </div>
+
+    <!-- COOKIES TABLE -->
+    <div class="card" style="margin-bottom:16px;">
+      <h2>Barcha cookie'lar</h2>
+      <div id="cookieTableContainer">
+        <div class="empty">Hech qanday cookie topilmadi.</div>
+      </div>
+    </div>
+
+    <!-- TEST OUTPUT -->
+    <div class="card" style="margin-bottom:16px;">
+      <h2>Test natijalari</h2>
+      <pre class="test-output" id="testOutput">Hech qanday test bajarilmagan. "Testlarni ishga tushirish" tugmasini bosing.</pre>
+      <div id="testReport" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="grid">
+      <div class="card">
+        <h2>Test cookie yaratish</h2>
+        <div class="row">
+          <input id="qcName" placeholder="Nomi" value="test_cookie" style="padding:6px 8px; border-radius:6px; border:1px solid var(--cc-border); background:var(--cc-bg); color:var(--cc-fg);" />
+          <input id="qcValue" placeholder="Qiymati" value="hello" style="padding:6px 8px; border-radius:6px; border:1px solid var(--cc-border); background:var(--cc-bg); color:var(--cc-fg);" />
+          <input id="qcDays" placeholder="Kun" type="number" value="7" style="width:70px; padding:6px 8px; border-radius:6px; border:1px solid var(--cc-border); background:var(--cc-bg); color:var(--cc-fg);" />
+        </div>
+        <div class="row">
+          <button id="btnCreate" class="primary">Yaratish</button>
+          <button id="btnRead">O'qish</button>
+          <button id="btnUpdate">Yangilash</button>
+          <button id="btnDelete" class="danger">O'chirish</button>
+        </div>
+        <pre id="qcResult" style="margin-top:10px;">Natija shu yerda ko'rinadi.</pre>
+      </div>
+
+      <div class="card">
+        <h2>Mavzu / Til</h2>
+        <div class="row">
+          <button id="btnThemeLight">☀ Light</button>
+          <button id="btnThemeDark">🌙 Dark</button>
+          <button id="btnThemeToggle">🔄 Toggle</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button data-lang="uz">🇺🇿 UZ</button>
+          <button data-lang="ru">🇷🇺 RU</button>
+          <button data-lang="en">🇬🇧 EN</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Sessiya</h2>
+        <pre id="sessionInfo">Yuklanmoqda...</pre>
+        <div class="row">
+          <button id="btnRegenSession" class="primary">Yangi sessiya</button>
+          <button id="btnDestroySession" class="danger">Sessiyani o'chirish</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="lead" style="margin-top:24px; font-size:12px;">
+      ⚠ Bu sahifa faqat dasturchi uchun. Production'da kirish cheklanishi kerak.
+    </p>
+  </div>
+
+  <script src="cookie-utils.js"></script>
+  <script src="cookie-consent.js"></script>
+  <script src="cookie-theme.js"></script>
+  <script src="cookie-language.js"></script>
+  <script src="cookie-session.js"></script>
+  <script src="cookie-dev.js"></script>
+</body>
+</html>

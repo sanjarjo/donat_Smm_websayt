@@ -1,0 +1,106 @@
+You are a senior full-stack web developer and security engineer.
+
+Your task is to implement a complete production-ready cookie management system for my website.
+
+Requirements:
+
+1. Create a cookie consent banner that appears only for first-time visitors.
+
+2. The banner must have:
+
+   * Accept All Cookies
+   * Reject Non-Essential Cookies
+   * Cookie Settings
+
+3. Store the user's cookie preferences.
+
+4. Do not show the banner again after the user makes a choice.
+
+5. Support the following cookie categories:
+
+   * Essential Cookies
+   * Analytics Cookies
+   * Marketing Cookies
+   * Preference Cookies
+
+6. Implement functions for:
+
+   * createCookie(name, value, days)
+   * getCookie(name)
+   * deleteCookie(name)
+   * updateCookie(name, value)
+
+7. Add secure cookie settings:
+
+   * Secure
+   * SameSite=Strict
+   * HttpOnly where applicable
+   * Expiration dates
+
+8. Create a user session cookie system:
+
+   * Generate session identifiers
+   * Store authentication/session data securely
+   * Automatically expire inactive sessions
+
+9. Implement dark/light theme persistence using cookies.
+
+10. Implement language preference persistence using cookies.
+
+11. Add a developer testing page showing:
+
+* All current cookies
+* Cookie names
+* Values
+* Expiration dates
+* Cookie category
+
+12. Create automated tests that verify:
+
+* Cookie creation works
+* Cookie reading works
+* Cookie updating works
+* Cookie deletion works
+* Cookie consent persistence works
+* Theme persistence works
+* Language persistence works
+* Session cookie functionality works
+
+13. Create console test output similar to:
+
+✓ Cookie creation test passed
+✓ Cookie read test passed
+✓ Cookie update test passed
+✓ Cookie delete test passed
+✓ Cookie consent persistence test passed
+✓ Theme persistence test passed
+✓ Language persistence test passed
+✓ Session cookie test passed
+
+14. At the end of execution automatically run all tests and generate a final report:
+
+===================================
+COOKIE SYSTEM TEST REPORT
+=========================
+
+Total Tests: X
+Passed: X
+Failed: X
+Success Rate: XX%
+=================
+
+If any test fails:
+
+* Explain the cause.
+* Fix the issue automatically.
+* Re-run the tests.
+* Continue until all tests pass.
+
+15. Use clean, modern, production-ready code.
+16. Follow OWASP security recommendations.
+17. Include comments explaining each major section.
+18. Optimize for performance and browser compatibility.
+19. Do not leave placeholders, TODOs, or unfinished code.
+20. Return the complete implementation with all files required for deployment.
+
+Before finishing, perform a full self-audit and verify that every requirement above has been implemented and tested successfully.
