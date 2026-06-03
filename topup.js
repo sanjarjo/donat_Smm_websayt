@@ -203,4 +203,18 @@ document.addEventListener('DOMContentLoaded', function () {
   updateInputFields();
   updateSummary();
 
+  /* ── BALANSNI YUKLASH ── */
+  function loadTopupBalance() {
+    fetch('/api/user', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : { user: null }; })
+      .then(function (data) {
+        const el = document.getElementById('topupBalanceAmount');
+        if (el) {
+          el.textContent = (data.user && data.user.balance != null ? data.user.balance : 0).toLocaleString() + " so'm";
+        }
+      })
+      .catch(function () { /* silent */ });
+  }
+  loadTopupBalance();
+
 });

@@ -7,7 +7,7 @@ window.addEventListener('scroll', () => {
 // ── GET CSRF TOKEN ──
 async function getCsrfToken() {
   try {
-    const res = await fetch('/api/csrf-token');
+    const res = await fetch('/api/csrf-token', { credentials: 'same-origin' });
     const { csrfToken } = await res.json();
     return csrfToken;
   } catch (err) {
@@ -252,6 +252,7 @@ async function handleEmailAuth() {
     const response = await fetch(route, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+      credentials: 'same-origin',
       body: JSON.stringify(body)
     });
     const data = await response.json();
@@ -406,11 +407,12 @@ async function logoutUser() {
     return window.SMPIN_AUTH.logout('index.html');
   }
   try {
-    const csrfRes = await fetch('/api/csrf-token');
+    const csrfRes = await fetch('/api/csrf-token', { credentials: 'same-origin' });
     const { csrfToken } = await csrfRes.json();
     await fetch('/api/logout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+      credentials: 'same-origin',
       body: JSON.stringify({ _csrf: csrfToken })
     });
   } catch (err) {

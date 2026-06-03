@@ -87,8 +87,8 @@ document.addEventListener('DOMContentLoaded', function() {
       showToast('Faqat PNG, JPG, GIF va PDF fayllari qabul qilinadi', 'error');
       return false;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('Fayl 5MB dan kichik bolishi kerak', 'error');
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Fayl 10MB dan kichik bolishi kerak', 'error');
       return false;
     }
     return true;

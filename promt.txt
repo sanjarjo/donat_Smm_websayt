@@ -1,238 +1,34 @@
-You are a senior full-stack engineer, security auditor, QA engineer, and database specialist.
-
-Analyze the entire project directory and perform a complete production-grade audit.
-
-Project may contain:
-
-* HTML
-* CSS
-* JavaScript
-* JSON
-* SQLite
-* Configuration files
-* Authentication system
-* Dashboard pages
-* User accounts
-* Session management
-* Cookie management
-
-Your tasks:
-
-PHASE 1 - PROJECT DISCOVERY
-
-1. Read every file in the project.
-2. Build a complete dependency map.
-3. Identify:
-
-   * Entry points
-   * Authentication logic
-   * Database structure
-   * Navigation system
-   * Session handling
-   * Cookies
-   * LocalStorage usage
-   * API endpoints
-   * Dashboard logic
-   * User role system
-
-Generate a report before making changes.
-
-PHASE 2 - AUTHENTICATION AUDIT
-
-Check for:
-
-* Login succeeds but user state is not persisted
-* Dashboard visible only on current page
-* Login status lost after navigation
-* Login status lost after page refresh
-* Logout not working
-* Registration not creating users correctly
-* Password validation issues
-* Missing session checks
-* Broken redirects
-* JWT issues
-* Missing authentication middleware
-* Session expiration problems
-* Cookie issues
-* LocalStorage synchronization issues
-* Multiple tab login inconsistencies
-
-Fix every issue found.
-
-PHASE 3 - NAVIGATION AUDIT
-
-Check every page:
-
-* Login button visibility
-* Register button visibility
-* Dashboard button visibility
-* Profile button visibility
-* Logout button visibility
-
-Verify:
-
-Guest users see:
-
-* Login
-* Register
-
-Authenticated users see:
-
-* Dashboard
-* Profile
-* Logout
-
-Ensure navigation remains correct:
-
-* After login
-* After refresh
-* After opening a new page
-* After opening a new tab
-* After browser restart (if persistent login is enabled)
-
-Fix all issues.
-
-PHASE 4 - COOKIE AND SESSION AUDIT
-
-Check:
-
-* Cookie creation
-* Cookie reading
-* Cookie updates
-* Cookie deletion
-* Secure flag
-* SameSite settings
-* Session expiration
-* Session persistence
-* Session invalidation after logout
-
-Fix all detected issues.
-
-PHASE 5 - DATABASE AUDIT
-
-Analyze SQLite database:
-
-* Missing tables
-* Missing indexes
-* Broken foreign keys
-* Duplicate users
-* Corrupted records
-* Invalid references
-* Authentication-related data issues
-
-Repair automatically when safe.
-
-PHASE 6 - FRONTEND AUDIT
-
-Check:
-
-* Broken JavaScript
-* Undefined variables
-* Console errors
-* Missing event listeners
-* Broken forms
-* Broken navigation links
-* Incorrect redirects
-* Missing DOM elements
-* Async errors
-* Fetch failures
-
-Fix all issues.
-
-PHASE 7 - SECURITY AUDIT
-
-Check:
-
-* XSS vulnerabilities
-* CSRF vulnerabilities
-* SQL Injection risks
-* Weak session handling
-* Insecure cookies
-* Exposed secrets
-* Hardcoded credentials
-* Missing input validation
-* Missing output escaping
-
-Apply secure fixes following OWASP recommendations.
-
-PHASE 8 - AUTOMATED TESTING
-
-Create and run tests for:
-
-Authentication:
-✓ Register
-✓ Login
-✓ Logout
-✓ Session persistence
-✓ Refresh persistence
-✓ Navigation persistence
-
-Cookies:
-✓ Create
-✓ Read
-✓ Update
-✓ Delete
-
-Database:
-✓ User creation
-✓ User retrieval
-✓ User updates
-
-Frontend:
-✓ Navigation
-✓ Dashboard visibility
-✓ Button visibility
-
-PHASE 9 - SELF-HEALING
-
-If a test fails:
-
-1. Diagnose root cause.
-2. Fix the issue.
-3. Re-run tests.
-4. Continue until all tests pass.
-
-PHASE 10 - FINAL REPORT
-
-Generate:
-
-====================================
-PROJECT AUDIT REPORT
-====================
-
-Files Scanned: X
-
-Issues Found:
-
-* X Critical
-* X High
-* X Medium
-* X Low
-
-Issues Fixed:
-
-* X
-
-Authentication Status:
-PASS / FAIL
-
-Navigation Status:
-PASS / FAIL
-
-Cookie Status:
-PASS / FAIL
-
-Database Status:
-PASS / FAIL
-
-Security Status:
-PASS / FAIL
-
-Overall Project Health:
-XX%
-
-====================================
-
-Do not stop after finding issues.
-
-Automatically repair all safe-to-fix problems and verify every fix through testing before completion.
+Authentication is broken.
+
+Facts already verified:
+
+* connect.sid cookie exists.
+* GET /api/user returns HTTP 200.
+* GET /api/user returns {"user":null}.
+* auth-ui.js depends on /api/user.
+* Login appears successful but user state is lost after page reload.
+
+Task:
+
+1. Find the login endpoint.
+2. Show the exact code that runs after successful login.
+3. Show everything written into req.session.
+4. Find GET /api/user.
+5. Show exactly how GET /api/user determines the current user.
+6. Compare login session fields vs /api/user session fields.
+7. Identify the root cause.
+8. Fix the bug.
+9. Run authentication tests.
+10. Verify that after login:
+
+    * /api/user returns a real user object
+    * Dashboard button appears
+    * Login/Register buttons disappear
+    * Refresh keeps the user logged in
+
+Output:
+
+* file names
+* line numbers
+* code changes
+* test results

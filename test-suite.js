@@ -329,8 +329,38 @@ async function testSessionInvalidationOnLogout() {
   record('After logout, /api/orders is 401', orders.status === 401, 'status=' + orders.status);
 }
 
+async function reauthenticateTestUser() {
+  // Some intermediate tests (e.g. testUploadsAccessControl, testCsrfProtectionOnPost)
+  // can leave the session invalidated. Re-login to ensure downstream tests run as
+  // an authenticated user.
+  COOKIE_JAR.clear();
+  await getCsrf();
+  const r = await request('POST', '/api/login', {
+    email: TEST_USER_EMAIL,
+    password: TEST_USER_PASSWORD,
+    _csrf: CSRF_TOKEN
+  });
+  if (!(r.status === 200 && r.body && r.body.user)) {
+    // Fall back to re-registration if the user got cleaned up between runs
+    await getCsrf();
+    await request('POST', '/api/register', {
+      email: TEST_USER_EMAIL,
+      password: TEST_USER_PASSWORD,
+      fullName: 'Test User',
+      _csrf: CSRF_TOKEN
+    });
+    await getCsrf();
+    await request('POST', '/api/login', {
+      email: TEST_USER_EMAIL,
+      password: TEST_USER_PASSWORD,
+      _csrf: CSRF_TOKEN
+    });
+  }
+}
+
 async function testUploadsAccessControl() {
   // Even with no session, the /uploads endpoint must 401
+  COOKIE_JAR.clear();
   const r = await request('GET', '/uploads/anything.png');
   record('Uploads require authentication (401)', r.status === 401, 'status=' + r.status);
 }
@@ -479,10 +509,13 @@ async function runAll() {
   await testUploadsAccessControl();
 
   logHeader('PHASE 5 — ORDERS');
+  await reauthenticateTestUser();
   await testSmmOrderValidation();
+  await reauthenticateTestUser();
   await testTopupOrderValidation();
 
   logHeader('PHASE 6 — ADMIN');
+  await reauthenticateTestUser();
   await testAdminAccessControl();
 
   logHeader('PHASE 7 — LOGOUT / SESSION INVALIDATION');

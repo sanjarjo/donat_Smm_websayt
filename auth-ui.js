@@ -18,7 +18,7 @@
   }
 
   function getCsrfToken() {
-    return fetch('/api/csrf-token')
+    return fetch('/api/csrf-token', { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (j) { return j.csrfToken || ''; })
       .catch(function () { return ''; });

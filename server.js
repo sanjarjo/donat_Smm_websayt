@@ -18,8 +18,24 @@ const fs = require('fs');
 const cors = require('cors');
 
 // Startup validation
-if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'fallback-secret-change-in-production') {
-  console.error('ERROR: SESSION_SECRET is not set or is using the default fallback value.');
+const SESSION_SECRET = process.env.SESSION_SECRET || '';
+const WEAK_SECRET_PATTERNS = [
+  'fallback-secret-change-in-production',
+  'dev-secret',
+  'change-me',
+  'changeme',
+  'secret',
+  'test',
+  'placeholder',
+  'default',
+  'your-secret',
+  'your-super-secret'
+];
+const isWeakSecret = !SESSION_SECRET
+  || SESSION_SECRET.length < 32
+  || WEAK_SECRET_PATTERNS.some(p => SESSION_SECRET.toLowerCase().includes(p));
+if (isWeakSecret) {
+  console.error('ERROR: SESSION_SECRET must be set to a strong (>=32 char) random value. Refusing to start with a weak secret.');
   process.exit(1);
 }
 
@@ -105,7 +121,7 @@ app.use(cors({
 // Rate limiting for auth endpoints
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: process.env.NODE_ENV === 'production' ? 10 : 100,
   message: 'Juda ko\'p urinish. Keyinroq qayta urinib ko\'ring.',
   standardHeaders: true,
   legacyHeaders: false
@@ -113,7 +129,7 @@ const loginLimiter = rateLimit({
 
 const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 5,
+  max: process.env.NODE_ENV === 'production' ? 5 : 50,
   message: 'Juda ko\'p urinish. Keyinroq qayta urinib ko\'ring.',
   standardHeaders: true,
   legacyHeaders: false
