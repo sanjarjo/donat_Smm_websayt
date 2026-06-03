@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="cookie-consent.css" />
 </head>
-<body>
+<body data-require-auth="1">
 
   <!-- HEADER -->
   <header class="site-header" id="siteHeader">
@@ -23,12 +23,13 @@
         <a href="topup.html">Top-up</a>
         <a href="smm.html">SMM</a>
         <a href="balance.html">Balans</a>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="index.html#howit">Qanday ishlaydi</a>
-        <a href="index.html#contact">Aloqa</a>
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="profile.html">Profil</a>
+        <a href="order-history.html">Buyurtmalar</a>
+        <a href="notifications.html">Bildirishnomalar</a>
       </nav>
       <div class="header-actions">
-        <button class="btn-outline" id="logoutBtn">Chiqish</button>
+        <!-- SMPIN_AUTH.renderLoggedInHeader() will populate this -->
       </div>
       <button class="burger" id="burger" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -42,10 +43,11 @@
     <a href="smm.html" class="mn-link">SMM</a>
     <a href="balance.html" class="mn-link">Balans</a>
     <a href="dashboard.html" class="mn-link">Dashboard</a>
-    <a href="index.html#howit" class="mn-link">Qanday ishlaydi</a>
-    <a href="index.html#contact" class="mn-link">Aloqa</a>
+    <a href="profile.html" class="mn-link">Profil</a>
+    <a href="order-history.html" class="mn-link">Buyurtmalar</a>
+    <a href="notifications.html" class="mn-link">Bildirishnomalar</a>
     <div class="mn-actions">
-      <button class="btn-outline w100" id="mobileLogoutBtn">Chiqish</button>
+      <!-- SMPIN_AUTH renders Dashboard / Logout here for logged-in users -->
     </div>
   </div>
 
@@ -55,7 +57,7 @@
     <section class="section">
       <div class="container">
         <div class="dashboard-header">
-          <h1>Xush kelibsiz, Foydalanuvchi!</h1>
+          <h1>Xush kelibsiz!</h1>
           <p>Sizning hisobingiz ma'lumotlari</p>
         </div>
 
@@ -170,12 +172,27 @@
     </div>
   </footer>
 
-  <script src="script.js"></script>
-  <script src="notifications.js"></script>
   <script src="cookie-utils.js"></script>
   <script src="cookie-consent.js"></script>
   <script src="cookie-theme.js"></script>
   <script src="cookie-language.js"></script>
   <script src="cookie-session.js"></script>
+  <script src="auth-ui.js"></script>
+  <script src="notifications.js"></script>
+  <script src="dashboard.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const btn = document.getElementById('openCookieSettings');
+      if (btn) btn.addEventListener('click', function (e) { e.preventDefault(); window.CookieConsent.showSettings(); });
+      const burger = document.getElementById('burger');
+      const mobileNav = document.getElementById('mobileNav');
+      if (burger && mobileNav) {
+        burger.addEventListener('click', function () { mobileNav.classList.toggle('open'); });
+        mobileNav.querySelectorAll('.mn-link').forEach(function (l) {
+          l.addEventListener('click', function () { mobileNav.classList.remove('open'); });
+        });
+      }
+    });
+  </script>
 </body>
 </html>

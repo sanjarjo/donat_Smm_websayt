@@ -29,6 +29,7 @@ if (!process.env.ADMIN_CHAT_ID) {
 }
 
 const app = express();
+app.set('trust proxy', 1); // honor X-Forwarded-* for accurate IPs behind a reverse proxy
 const DB_PATH = __dirname + '/database.sqlite';
 const ADMIN_CHAT_ID = parseInt(process.env.ADMIN_CHAT_ID, 10);
 const TELEGRAM_BOT_HANDLE = process.env.TELEGRAM_BOT_HANDLE || 'smpinbot';
@@ -189,8 +190,13 @@ function initDb() {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`, (err) => {
-      // Ignore "duplicate column" error - means it already exists
+    // Safe schema upgrade: only add is_admin if it doesn't exist yet.
+    db.all("PRAGMA table_info(users)", (err, rows) => {
+      if (err) return;
+      const hasIsAdmin = rows && rows.some(r => r.name === 'is_admin');
+      if (!hasIsAdmin) {
+        db.run(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`);
+      }
     });
 
     db.run(`CREATE TABLE IF NOT EXISTS orders (
@@ -247,6 +253,19 @@ function initDb() {
       is_read INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )`);
+
+    // Performance indexes (idempotent — wrapped in IF NOT EXISTS)
+    // ✅ FIX 7: Add missing indexes on users table for authentication performance
+    db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email)`);
+    db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id)`);
+    
+    db.run(`CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications(user_id, is_read)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_replenishment_user_id ON replenishment_requests(user_id)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_replenishment_status ON replenishment_requests(status)`);
   });
 }
 
@@ -838,7 +857,17 @@ app.post('/api/login', loginLimiter, [
   }
 });
 
-app.get('/api/user', async (req, res) => {
+// ✅ FIX 8: Rate limiting for user endpoint to prevent enumeration
+const userLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: 'Juda ko\'p so\'rov. Keyinroq qayta urinib ko\'ring.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.method !== 'GET' || !req.path.includes('/api/user')
+});
+
+app.get('/api/user', userLimiter, async (req, res) => {
   try {
     if (!req.session.userId) return res.json({ user: null });
     const user = await getUserById(req.session.userId);
@@ -1342,9 +1371,11 @@ const ALLOWED_EXTENSIONS = ['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.g
 app.use((req, res, next) => {
   const ext = path.extname(req.path).toLowerCase();
   const basename = path.basename(req.path);
+  // ✅ FIX 9: Block sensitive database and config files
   if (
     basename === 'server.js' ||
     basename === 'database.sqlite' ||
+    basename === 'sessions.sqlite' ||
     basename === 'package.json' ||
     basename === 'package-lock.json' ||
     basename.startsWith('.') ||

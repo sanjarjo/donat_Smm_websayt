@@ -389,118 +389,22 @@ document.querySelectorAll('.game-card, .smm-card, .plan-card, .review-card').for
   });
 });
 
-// ── AUTH STATUS VA DUMALOQ AVATAR (YANGI QO'SHILGAN KOD) ──
+// ── AUTH STATUS VA DUMALOQ AVATAR ──
+// Header rendering is now handled by the shared `auth-ui.js` module
+// (window.SMPIN_AUTH). This script defers to it so all pages stay consistent.
+// The `logoutUser` shim is kept for backwards-compatibility with inline
+// handlers that may still reference it.
 
-// Sayt yuklanganda ishga tushadi
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const res = await fetch('/api/user');
-    if (!res.ok) return; // Login qilinmagan — hech narsa qilmaymiz
-    const data = await res.json();
-    if (data && data.user) {
-      updateHeaderForLoggedInUser(data.user);
-    }
-  } catch (err) {
-    console.error("Auth status tekshirishda xatolik:", err);
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.SMPIN_AUTH && typeof window.SMPIN_AUTH.init === 'function') {
+    window.SMPIN_AUTH.init();
   }
 });
 
-// "Kirish" tugmalarini dumaloq avatar va Dashboard tugmalariga almashtirish
-function updateHeaderForLoggedInUser(user) {
-  const headerActions = document.querySelector('.header-actions');
-  const mnActions = document.querySelector('.mn-actions');
-
-  // Ismning yoki emailning birinchi harfini ajratib olish (Avatar uchun)
-  const initial = (user.full_name || user.email || 'U').charAt(0).toUpperCase();
-  const displayName = user.full_name || user.email || 'Foydalanuvchi';
-  const balanceText = (user.balance || 0).toLocaleString() + " so'm";
-
-  // Desktop versiyasi uchun avatar va ochiladigan menyu (dropdown)
-  if (headerActions) {
-    headerActions.textContent = '';
-
-    const userProfile = document.createElement('div');
-    userProfile.className = 'user-profile';
-
-    const avatar = document.createElement('div');
-    avatar.className = 'avatar';
-    avatar.id = 'avatarBtn';
-    avatar.textContent = initial;
-
-    const dropdown = document.createElement('div');
-    dropdown.className = 'profile-dropdown';
-    dropdown.id = 'profileDropdown';
-
-    const dropdownHeader = document.createElement('div');
-    dropdownHeader.className = 'dropdown-header';
-    const nameEl = document.createElement('strong');
-    nameEl.textContent = displayName;
-    const balanceEl = document.createElement('span');
-    balanceEl.textContent = balanceText;
-    dropdownHeader.appendChild(nameEl);
-    dropdownHeader.appendChild(balanceEl);
-
-    const dashLink = document.createElement('a');
-    dashLink.href = 'dashboard.html';
-    dashLink.className = 'dropdown-item';
-    dashLink.textContent = 'Dashboard';
-
-    const logoutBtn = document.createElement('button');
-    logoutBtn.className = 'dropdown-item text-danger';
-    logoutBtn.id = 'logoutBtn';
-    logoutBtn.textContent = 'Chiqish';
-
-    dropdown.appendChild(dropdownHeader);
-    dropdown.appendChild(dashLink);
-    dropdown.appendChild(logoutBtn);
-
-    userProfile.appendChild(avatar);
-    userProfile.appendChild(dropdown);
-    headerActions.appendChild(userProfile);
-
-    avatar.addEventListener('click', toggleProfileDropdown);
-    logoutBtn.addEventListener('click', logoutUser);
-  }
-
-  if (mnActions) {
-    mnActions.textContent = '';
-
-    const dashLink = document.createElement('a');
-    dashLink.href = 'dashboard.html';
-    dashLink.className = 'btn-primary w100 text-center';
-    dashLink.style.display = 'block';
-    dashLink.style.marginBottom = '10px';
-    dashLink.textContent = 'Dashboard';
-
-    const logoutBtn = document.createElement('button');
-    logoutBtn.className = 'btn-outline w100 text-danger';
-    logoutBtn.id = 'mobileLogoutBtn';
-    logoutBtn.textContent = 'Chiqish';
-
-    mnActions.appendChild(dashLink);
-    mnActions.appendChild(logoutBtn);
-    logoutBtn.addEventListener('click', logoutUser);
-  }
-}
-
-// Avatarga bosganda menyuni ochib/yopish
-function toggleProfileDropdown() {
-  const dropdown = document.getElementById('profileDropdown');
-  if (dropdown) {
-    dropdown.classList.toggle('active');
-  }
-}
-
-// Ekranning boshqa joyiga bosganda menyuni yopish
-window.addEventListener('click', (e) => {
-  const dropdown = document.getElementById('profileDropdown');
-  if (dropdown && dropdown.classList.contains('active') && !e.target.closest('.user-profile')) {
-    dropdown.classList.remove('active');
-  }
-});
-
-// Tizimdan chiqish (Logout)
 async function logoutUser() {
+  if (window.SMPIN_AUTH && typeof window.SMPIN_AUTH.logout === 'function') {
+    return window.SMPIN_AUTH.logout('index.html');
+  }
   try {
     const csrfRes = await fetch('/api/csrf-token');
     const { csrfToken } = await csrfRes.json();

@@ -58,7 +58,7 @@
     }
   </style>
 </head>
-<body>
+<body data-require-auth="1">
 
   <div class="profile-header">
     <div style="max-width: 800px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center;">
@@ -109,12 +109,13 @@
     </div>
   </div>
 
-  <script src="notifications.js"></script>
   <script src="cookie-utils.js"></script>
   <script src="cookie-consent.js"></script>
   <script src="cookie-theme.js"></script>
   <script src="cookie-language.js"></script>
   <script src="cookie-session.js"></script>
+  <script src="auth-ui.js"></script>
+  <script src="notifications.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const backBtn = document.getElementById('backBtn');

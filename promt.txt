@@ -1,106 +1,238 @@
-You are a senior full-stack web developer and security engineer.
+You are a senior full-stack engineer, security auditor, QA engineer, and database specialist.
 
-Your task is to implement a complete production-ready cookie management system for my website.
+Analyze the entire project directory and perform a complete production-grade audit.
 
-Requirements:
+Project may contain:
 
-1. Create a cookie consent banner that appears only for first-time visitors.
+* HTML
+* CSS
+* JavaScript
+* JSON
+* SQLite
+* Configuration files
+* Authentication system
+* Dashboard pages
+* User accounts
+* Session management
+* Cookie management
 
-2. The banner must have:
+Your tasks:
 
-   * Accept All Cookies
-   * Reject Non-Essential Cookies
-   * Cookie Settings
+PHASE 1 - PROJECT DISCOVERY
 
-3. Store the user's cookie preferences.
+1. Read every file in the project.
+2. Build a complete dependency map.
+3. Identify:
 
-4. Do not show the banner again after the user makes a choice.
+   * Entry points
+   * Authentication logic
+   * Database structure
+   * Navigation system
+   * Session handling
+   * Cookies
+   * LocalStorage usage
+   * API endpoints
+   * Dashboard logic
+   * User role system
 
-5. Support the following cookie categories:
+Generate a report before making changes.
 
-   * Essential Cookies
-   * Analytics Cookies
-   * Marketing Cookies
-   * Preference Cookies
+PHASE 2 - AUTHENTICATION AUDIT
 
-6. Implement functions for:
+Check for:
 
-   * createCookie(name, value, days)
-   * getCookie(name)
-   * deleteCookie(name)
-   * updateCookie(name, value)
+* Login succeeds but user state is not persisted
+* Dashboard visible only on current page
+* Login status lost after navigation
+* Login status lost after page refresh
+* Logout not working
+* Registration not creating users correctly
+* Password validation issues
+* Missing session checks
+* Broken redirects
+* JWT issues
+* Missing authentication middleware
+* Session expiration problems
+* Cookie issues
+* LocalStorage synchronization issues
+* Multiple tab login inconsistencies
 
-7. Add secure cookie settings:
+Fix every issue found.
 
-   * Secure
-   * SameSite=Strict
-   * HttpOnly where applicable
-   * Expiration dates
+PHASE 3 - NAVIGATION AUDIT
 
-8. Create a user session cookie system:
+Check every page:
 
-   * Generate session identifiers
-   * Store authentication/session data securely
-   * Automatically expire inactive sessions
+* Login button visibility
+* Register button visibility
+* Dashboard button visibility
+* Profile button visibility
+* Logout button visibility
 
-9. Implement dark/light theme persistence using cookies.
+Verify:
 
-10. Implement language preference persistence using cookies.
+Guest users see:
 
-11. Add a developer testing page showing:
+* Login
+* Register
 
-* All current cookies
-* Cookie names
-* Values
-* Expiration dates
-* Cookie category
+Authenticated users see:
 
-12. Create automated tests that verify:
+* Dashboard
+* Profile
+* Logout
 
-* Cookie creation works
-* Cookie reading works
-* Cookie updating works
-* Cookie deletion works
-* Cookie consent persistence works
-* Theme persistence works
-* Language persistence works
-* Session cookie functionality works
+Ensure navigation remains correct:
 
-13. Create console test output similar to:
+* After login
+* After refresh
+* After opening a new page
+* After opening a new tab
+* After browser restart (if persistent login is enabled)
 
-✓ Cookie creation test passed
-✓ Cookie read test passed
-✓ Cookie update test passed
-✓ Cookie delete test passed
-✓ Cookie consent persistence test passed
-✓ Theme persistence test passed
-✓ Language persistence test passed
-✓ Session cookie test passed
+Fix all issues.
 
-14. At the end of execution automatically run all tests and generate a final report:
+PHASE 4 - COOKIE AND SESSION AUDIT
 
-===================================
-COOKIE SYSTEM TEST REPORT
-=========================
+Check:
 
-Total Tests: X
-Passed: X
-Failed: X
-Success Rate: XX%
-=================
+* Cookie creation
+* Cookie reading
+* Cookie updates
+* Cookie deletion
+* Secure flag
+* SameSite settings
+* Session expiration
+* Session persistence
+* Session invalidation after logout
 
-If any test fails:
+Fix all detected issues.
 
-* Explain the cause.
-* Fix the issue automatically.
-* Re-run the tests.
-* Continue until all tests pass.
+PHASE 5 - DATABASE AUDIT
 
-15. Use clean, modern, production-ready code.
-16. Follow OWASP security recommendations.
-17. Include comments explaining each major section.
-18. Optimize for performance and browser compatibility.
-19. Do not leave placeholders, TODOs, or unfinished code.
-20. Return the complete implementation with all files required for deployment.
+Analyze SQLite database:
 
-Before finishing, perform a full self-audit and verify that every requirement above has been implemented and tested successfully.
+* Missing tables
+* Missing indexes
+* Broken foreign keys
+* Duplicate users
+* Corrupted records
+* Invalid references
+* Authentication-related data issues
+
+Repair automatically when safe.
+
+PHASE 6 - FRONTEND AUDIT
+
+Check:
+
+* Broken JavaScript
+* Undefined variables
+* Console errors
+* Missing event listeners
+* Broken forms
+* Broken navigation links
+* Incorrect redirects
+* Missing DOM elements
+* Async errors
+* Fetch failures
+
+Fix all issues.
+
+PHASE 7 - SECURITY AUDIT
+
+Check:
+
+* XSS vulnerabilities
+* CSRF vulnerabilities
+* SQL Injection risks
+* Weak session handling
+* Insecure cookies
+* Exposed secrets
+* Hardcoded credentials
+* Missing input validation
+* Missing output escaping
+
+Apply secure fixes following OWASP recommendations.
+
+PHASE 8 - AUTOMATED TESTING
+
+Create and run tests for:
+
+Authentication:
+✓ Register
+✓ Login
+✓ Logout
+✓ Session persistence
+✓ Refresh persistence
+✓ Navigation persistence
+
+Cookies:
+✓ Create
+✓ Read
+✓ Update
+✓ Delete
+
+Database:
+✓ User creation
+✓ User retrieval
+✓ User updates
+
+Frontend:
+✓ Navigation
+✓ Dashboard visibility
+✓ Button visibility
+
+PHASE 9 - SELF-HEALING
+
+If a test fails:
+
+1. Diagnose root cause.
+2. Fix the issue.
+3. Re-run tests.
+4. Continue until all tests pass.
+
+PHASE 10 - FINAL REPORT
+
+Generate:
+
+====================================
+PROJECT AUDIT REPORT
+====================
+
+Files Scanned: X
+
+Issues Found:
+
+* X Critical
+* X High
+* X Medium
+* X Low
+
+Issues Fixed:
+
+* X
+
+Authentication Status:
+PASS / FAIL
+
+Navigation Status:
+PASS / FAIL
+
+Cookie Status:
+PASS / FAIL
+
+Database Status:
+PASS / FAIL
+
+Security Status:
+PASS / FAIL
+
+Overall Project Health:
+XX%
+
+====================================
+
+Do not stop after finding issues.
+
+Automatically repair all safe-to-fix problems and verify every fix through testing before completion.
