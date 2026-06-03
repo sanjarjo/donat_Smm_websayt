@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function getCsrfToken() {
     try {
-      const res = await fetch('/api/csrf-token');
+      const res = await fetch('/api/csrf-token', { credentials: 'same-origin' });
       const { csrfToken } = await res.json();
       return csrfToken || '';
     } catch {
@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const res = await fetch('/api/replenishment-order', {
         method: 'POST',
         headers: { 'X-CSRF-Token': csrfToken },
+        credentials: 'same-origin',
         body: formData
       });
       const data = await res.json();
@@ -171,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadBalance() {
   try {
-    const res = await fetch('/api/user');
+    const res = await fetch('/api/user', { credentials: 'same-origin' });
     if (!res.ok) return;
     const data = await res.json();
     const balanceAmount = document.getElementById('balanceAmount');

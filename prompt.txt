@@ -1,0 +1,12 @@
+When I click login on the frontend, I see the following problem:
+
+1. Login request returns 200, but the page automatically logs out.
+2. /api/user endpoint sometimes returns user null or session is lost.
+3. Specific error in DevTools Console:
+- "NetworkError when attempting to fetch resource"
+- and sometimes fetch requests are "failed".
+4. Connect.sid is present in cookies, but is not always sent in subsequent requests.
+5. There may be places where Credentials: include is not used.
+
+Conclusion:
+Backend is fully working (login, register, user endpoint OK), the problem is that frontend fetch requests do not save or send the session/cookie completely.

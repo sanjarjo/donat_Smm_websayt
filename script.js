@@ -182,7 +182,7 @@ function handleGoogle() {
 async function handleTelegram() {
   closeAllModals();
   try {
-    const response = await fetch('/api/telegram/start');
+    const response = await fetch('/api/telegram/start', { credentials: 'same-origin' });
     const data = await response.json();
     if (!response.ok) {
       showToast(data.error || 'Telegram auth xatolik.', 'error');
@@ -201,12 +201,13 @@ async function pollTelegramStatus(token) {
   while (Date.now() < timeoutAt) {
     await new Promise(resolve => setTimeout(resolve, 2500));
     try {
-      const statusResponse = await fetch(`/api/telegram/status?token=${encodeURIComponent(token)}`);
+      const statusResponse = await fetch(`/api/telegram/status?token=${encodeURIComponent(token)}`, { credentials: 'same-origin' });
       const statusData = await statusResponse.json();
       if (statusData.status === 'linked') {
         const completeResponse = await fetch('/api/telegram/complete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
           body: JSON.stringify({ token })
         });
         const completeData = await completeResponse.json();

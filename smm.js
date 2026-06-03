@@ -133,7 +133,7 @@ async function submitSmmOrder() {
 
   const csrfToken = await (async () => {
     try {
-      const res = await fetch('/api/csrf-token');
+      const res = await fetch('/api/csrf-token', { credentials: 'same-origin' });
       const { csrfToken } = await res.json();
       return csrfToken;
     } catch { return ''; }
@@ -142,6 +142,7 @@ async function submitSmmOrder() {
   const response = await fetch('/api/smm-order', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+    credentials: 'same-origin',
     body: JSON.stringify({
       platform: getSelectedServiceName(),
       serviceLabel: productName,

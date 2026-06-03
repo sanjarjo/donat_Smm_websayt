@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const price = selectedProduct.price;
     const csrfToken = await (async () => {
       try {
-        const res = await fetch('/api/csrf-token');
+        const res = await fetch('/api/csrf-token', { credentials: 'same-origin' });
         const { csrfToken } = await res.json();
         return csrfToken;
       } catch { return ''; }
@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const response = await fetch('/api/topup-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+        credentials: 'same-origin',
         body: JSON.stringify(body)
       });
       const data = await response.json();
