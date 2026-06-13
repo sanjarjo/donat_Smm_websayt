@@ -797,6 +797,7 @@ function createNotification(userId, type, title, message, data = null) {
 }
 
 function requireAuth(req, res, next) {
+  console.log('[requireAuth] session.id:', req.session?.id, 'userId:', req.session?.userId, 'path:', req.path);
   if (!req.session.userId) {
     return res.status(401).json({ error: 'Autentifikatsiya talab qilinadi.' });
   }
@@ -866,7 +867,9 @@ app.post('/api/login', loginLimiter, [
     if (!user || !(await verifyPassword(password, user.password))) { // ✅ async
       return res.status(401).json({ error: 'Email yoki parol noto\'g\'ri.' });
     }
+    console.log('[login] BEFORE setting userId — session.id:', req.session.id, 'userId:', req.session.userId);
     req.session.userId = user.id;
+    console.log('[login] AFTER setting userId — session.id:', req.session.id, 'userId:', req.session.userId);
     res.json({ user });
   } catch (err) {
     res.status(500).json({ error: 'Tizimga kirishda xatolik yuz berdi.' });
@@ -884,6 +887,7 @@ const userLimiter = rateLimit({
 });
 
 app.get('/api/user', userLimiter, async (req, res) => {
+  console.log('[/api/user] session.id:', req.session?.id, 'userId:', req.session?.userId);
   try {
     if (!req.session.userId) return res.json({ user: null });
     const user = await getUserById(req.session.userId);
@@ -1221,6 +1225,7 @@ app.get('/healthz', (req, res) => {
 });
 
 app.get('/api/orders', requireAuth, async (req, res) => {
+  console.log('[/api/orders] session.id:', req.session?.id, 'userId:', req.session?.userId);
   try {
     const userId = req.session.userId;
     const orders = await new Promise((resolve, reject) => {

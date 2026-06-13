@@ -1,12 +1,44 @@
-When I click login on the frontend, I see the following problem:
+I found the actual problem.
 
-1. Login request returns 200, but the page automatically logs out.
-2. /api/user endpoint sometimes returns user null or session is lost.
-3. Specific error in DevTools Console:
-- "NetworkError when attempting to fetch resource"
-- and sometimes fetch requests are "failed".
-4. Connect.sid is present in cookies, but is not always sent in subsequent requests.
-5. There may be places where Credentials: include is not used.
+The dashboard.js fetch is working correctly.
 
-Conclusion:
-Backend is fully working (login, register, user endpoint OK), the problem is that frontend fetch requests do not save or send the session/cookie completely.
+Console test:
+
+fetch('/api/orders', {
+  credentials: 'same-origin'
+})
+.then(r => {
+  console.log('STATUS:', r.status);
+  return r.text();
+})
+.then(console.log);
+
+Result:
+
+STATUS: 401
+
+{"error":"Autentifikatsiya talab qilinadi."}
+
+Also:
+
+/api/user sometimes returns user data after login, but /api/orders returns 401.
+
+So the issue is not missing credentials anymore.
+
+Please investigate the backend session/auth middleware and the /api/orders route.
+
+Things to check:
+
+1. Is /api/orders using a different auth middleware than /api/user?
+2. Is req.session.userId available inside /api/orders?
+3. Is the session being regenerated after login and not saved correctly?
+4. Are Render deployments using MemoryStore, causing sessions to disappear between requests?
+5. Can you add console logs inside:
+   - /api/login
+   - auth middleware
+   - /api/user
+   - /api/orders
+
+to compare req.session contents on each request?
+
+The frontend is sending credentials correctly now, but /api/orders still receives an unauthenticated session and returns 401.
