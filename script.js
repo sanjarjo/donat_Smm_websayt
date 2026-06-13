@@ -397,11 +397,7 @@ document.querySelectorAll('.game-card, .smm-card, .plan-card, .review-card').for
 // The `logoutUser` shim is kept for backwards-compatibility with inline
 // handlers that may still reference it.
 
-document.addEventListener('DOMContentLoaded', function () {
-  if (window.SMPIN_AUTH && typeof window.SMPIN_AUTH.init === 'function') {
-    window.SMPIN_AUTH.init();
-  }
-});
+
 
 async function logoutUser() {
   if (window.SMPIN_AUTH && typeof window.SMPIN_AUTH.logout === 'function') {
