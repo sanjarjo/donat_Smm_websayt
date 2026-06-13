@@ -846,7 +846,13 @@ app.post('/api/register', registerLimiter, [
       telegram_username: null
     });
     req.session.userId = user.id;
-    res.json({ user });
+    req.session.save((err) => {
+      if (err) {
+        console.error('[register] Session save xatolik:', err);
+        return res.status(500).json({ error: 'Session xatolik yuz berdi.' });
+      }
+      res.json({ user });
+    });
   } catch (err) {
     res.status(500).json({ error: 'Ro\'yxatdan o\'tishda xatolik yuz berdi.' });
   }
@@ -870,7 +876,13 @@ app.post('/api/login', loginLimiter, [
     console.log('[login] BEFORE setting userId — session.id:', req.session.id, 'userId:', req.session.userId);
     req.session.userId = user.id;
     console.log('[login] AFTER setting userId — session.id:', req.session.id, 'userId:', req.session.userId);
-    res.json({ user });
+    req.session.save((err) => {
+      if (err) {
+        console.error('[login] Session save xatolik:', err);
+        return res.status(500).json({ error: 'Session xatolik yuz berdi.' });
+      }
+      res.json({ user });
+    });
   } catch (err) {
     res.status(500).json({ error: 'Tizimga kirishda xatolik yuz berdi.' });
   }
@@ -948,7 +960,10 @@ app.post('/api/telegram/complete', async (req, res) => {
     }
     if (!user) return res.status(404).json({ error: 'Foydalanuvchi topilmadi.' });
     req.session.userId = user.id;
-    res.json({ user });
+    req.session.save((err) => {
+      if (err) return res.status(500).json({ error: 'Session xatolik yuz berdi.' });
+      res.json({ user });
+    });
   } catch (err) {
     res.status(500).json({ error: 'Telegram kirishini yakunlashda xatolik yuz berdi.' });
   }
@@ -1373,7 +1388,9 @@ app.get('/auth/google/callback',
       });
     }
     req.session.userId = user.id;
-    res.redirect('/dashboard.html');
+    req.session.save((err) => {
+      if (err) return res.redirect('/?auth_error=1');
+      res.redirect('/dashboard.html');
   }
 );
 
