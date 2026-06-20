@@ -115,7 +115,7 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Requested-With', 'Accept']
 }));
 
 // Rate limiting for auth endpoints
@@ -1392,7 +1392,7 @@ const ALLOWED_EXTENSIONS = ['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.g
 app.use((req, res, next) => {
   const ext = path.extname(req.path).toLowerCase();
   const basename = path.basename(req.path);
-  // ✅ FIX 9: Block sensitive database and config files
+  // ✅ FIX 9: Block sensitive database and config files before static files are served.
   if (
     basename === 'server.js' ||
     basename === 'database.sqlite' ||
@@ -1406,7 +1406,7 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, { dotfiles: 'deny' }));
 
 initDb();
 

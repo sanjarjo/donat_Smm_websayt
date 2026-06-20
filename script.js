@@ -181,17 +181,26 @@ function handleGoogle() {
 // ── TELEGRAM AUTH ──
 async function handleTelegram() {
   closeAllModals();
+  let popup = window.open('about:blank', '_blank');
+  if (!popup) {
+    showToast('Popup bloklandi. Iltimos, popup blokatorni o\'chirib qayta urinib ko\'ring.', 'error');
+    return;
+  }
+
   try {
     const response = await fetch('/api/telegram/start', { credentials: 'same-origin' });
     const data = await response.json();
     if (!response.ok) {
+      popup.close();
       showToast(data.error || 'Telegram auth xatolik.', 'error');
       return;
     }
-    window.open(data.url, '_blank');
+
+    popup.location.href = data.url;
     showToast('Telegram bot ochildi. /start tugmasini bosing!', 'success');
     await pollTelegramStatus(data.token);
   } catch (err) {
+    if (popup && !popup.closed) popup.close();
     showToast('Telegramga ulanishda xatolik yuz berdi.', 'error');
   }
 }
@@ -204,11 +213,15 @@ async function pollTelegramStatus(token) {
       const statusResponse = await fetch(`/api/telegram/status?token=${encodeURIComponent(token)}`, { credentials: 'same-origin' });
       const statusData = await statusResponse.json();
       if (statusData.status === 'linked') {
+        const csrfToken = await getCsrfToken();
         const completeResponse = await fetch('/api/telegram/complete', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
-          body: JSON.stringify({ token })
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken
+          },
+          body: JSON.stringify({ token, _csrf: csrfToken })
         });
         const completeData = await completeResponse.json();
         if (completeResponse.ok) {
