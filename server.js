@@ -58,7 +58,10 @@ const TELEGRAM_BOT_HANDLE = process.env.TELEGRAM_BOT_HANDLE || 'smpinbot';
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const LOGS_DIR = path.join(__dirname, 'logs');
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY, {
+  auth: { persistSession: false },
+  realtime: { timeout: 0 }
+});
 
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) return console.error('SQLite error:', err);
