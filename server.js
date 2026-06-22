@@ -16,6 +16,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const { createClient } = require('@supabase/supabase-js');
 
 // Startup validation
 const SESSION_SECRET = process.env.SESSION_SECRET || '';
@@ -44,38 +45,33 @@ if (!process.env.ADMIN_CHAT_ID) {
   process.exit(1);
 }
 
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
+  console.error('ERROR: SUPABASE_URL and SUPABASE_KEY must be set in environment variables.');
+  process.exit(1);
+}
+
 const app = express();
 app.set('trust proxy', 1); // honor X-Forwarded-* for accurate IPs behind a reverse proxy
 const DB_PATH = __dirname + '/database.sqlite';
 const ADMIN_CHAT_ID = parseInt(process.env.ADMIN_CHAT_ID, 10);
 const TELEGRAM_BOT_HANDLE = process.env.TELEGRAM_BOT_HANDLE || 'smpinbot';
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const LOGS_DIR = path.join(__dirname, 'logs');
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) return console.error('SQLite error:', err);
   console.log('SQLite database loaded.');
 });
 
-// Ensure uploads and logs directories exist
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
+// Ensure logs directory exists
 if (!fs.existsSync(LOGS_DIR)) {
   fs.mkdirSync(LOGS_DIR, { recursive: true });
 }
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
-});
+// Configure multer for in-memory uploads
+const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -1130,7 +1126,31 @@ app.post('/api/replenishment-order', orderLimiter, requireAuth, upload.single('r
       return res.status(400).json({ error: 'To\'lov kvitansiyasi (fayl) yuborilishi kerak.' });
     }
 
-    const receipt_file = `/uploads/${req.file.filename}`;
+    const fileExt = path.extname(req.file.originalname).toLowerCase();
+    const uniqueName = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${fileExt}`;
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('smpin-uploads')
+      .upload(uniqueName, req.file.buffer, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: req.file.mimetype
+      });
+
+    if (uploadError) {
+      console.error('Supabase upload error:', uploadError);
+      return res.status(500).json({ error: 'Faylni Supabase Storage-ga yuklashda xatolik yuz berdi.' });
+    }
+
+    const { data: urlData, error: urlError } = supabase.storage
+      .from('smpin-uploads')
+      .getPublicUrl(uniqueName);
+
+    if (urlError || !urlData?.publicUrl) {
+      console.error('Supabase public URL error:', urlError);
+      return res.status(500).json({ error: 'Supabase fayl URLini olishda xatolik yuz berdi.' });
+    }
+
+    const receipt_file = urlData.publicUrl;
 
     const replenishId = await new Promise((resolve, reject) => {
       const sql = `INSERT INTO replenishment_requests (user_id, amount, type, receipt_file, status)
@@ -1181,7 +1201,11 @@ app.post('/api/replenishment-order', orderLimiter, requireAuth, upload.single('r
       { replenish_id: replenishId, amount, type }
     );
 
-    res.json({ message: 'Balans qoʻshish soʻrovi adminga yuborildi.', replenish_id: replenishId });
+    res.json({
+      message: 'Balans qoʻshish soʻrovi adminga yuborildi.',
+      replenish_id: replenishId,
+      receipt_url: receipt_file
+    });
   } catch (err) {
     console.error('Replenishment error:', err);
     res.status(500).json({ error: 'Balans qoʻshish soʻrovida xatolik yuz berdi.' });
@@ -1376,16 +1400,6 @@ app.get('/auth/google/callback',
     res.redirect('/dashboard.html');
   }
 );
-
-// ✅ FIX 2: /uploads/ faqat login qilgan foydalanuvchilarga
-app.get('/uploads/:filename', requireAuth, (req, res) => {
-  const filename = path.basename(req.params.filename);
-  const filePath = path.join(UPLOADS_DIR, filename);
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send('Fayl topilmadi.');
-  }
-  res.sendFile(filePath);
-});
 
 const ALLOWED_EXTENSIONS = ['.html', '.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.ico', '.svg', '.pdf', '.doc', '.docx'];
 
