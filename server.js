@@ -770,6 +770,22 @@ app.get('/healthz', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
+// Serve static files from the root directory
+app.use(express.static(__dirname, { 
+  index: 'index.html',
+  maxAge: '1d'
+}));
+
+// Root route handler
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+// Fallback catchall for SPA routing
+app.get('*', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
 app.listen(PORT, () => {
   console.log(`Server ishlayapti: http://localhost:${PORT}`);
 });
