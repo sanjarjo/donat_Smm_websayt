@@ -72,6 +72,12 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Requested-With', 'Accept']
 }));
 
+// Serve static files BEFORE API routes
+app.use(express.static(__dirname, { 
+  index: 'index.html',
+  maxAge: '1d'
+}));
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'production' ? 10 : 100,
@@ -770,18 +776,7 @@ app.get('/healthz', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-// Serve static files from the root directory
-app.use(express.static(__dirname, { 
-  index: 'index.html',
-  maxAge: '1d'
-}));
-
-// Root route handler
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
-});
-
-// Fallback catchall for SPA routing
+// Fallback catchall for SPA routing (must be LAST route)
 app.get('*', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
