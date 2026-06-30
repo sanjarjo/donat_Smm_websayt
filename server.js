@@ -776,8 +776,24 @@ app.get('/healthz', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
 });
 
-// Fallback catchall for SPA routing (must be LAST route)
+// Explicit routes for static files (backup if middleware doesn't work)
+app.get(/\.(?:css|js|html|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/, (req, res) => {
+  const filePath = path.join(__dirname, req.path);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      res.status(404).send('File not found');
+    }
+  });
+});
+
+// Fallback catchall for SPA routing - ONLY for HTML routes, NOT static files
 app.get('*', (req, res) => {
+  // Don't serve index.html for file requests (files with extensions)
+  const hasDotExtension = /\.[a-zA-Z0-9]+$/.test(req.path);
+  if (hasDotExtension) {
+    return res.status(404).send('File not found');
+  }
+  // For all other requests (SPA routes), serve index.html
   res.sendFile(__dirname + '/index.html');
 });
 
