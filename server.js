@@ -72,12 +72,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Requested-With', 'Accept']
 }));
 
-// Serve static files BEFORE API routes
-app.use(express.static(__dirname, { 
-  index: 'index.html',
-  maxAge: '1d'
-}));
-
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: process.env.NODE_ENV === 'production' ? 10 : 100,
@@ -772,29 +766,8 @@ app.get('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-app.get('/healthz', (req, res) => {
+app.get('/api/healthz', (req, res) => {
   res.json({ status: 'ok', uptime: process.uptime() });
-});
-
-// Explicit routes for static files (backup if middleware doesn't work)
-app.get(/\.(?:css|js|html|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/, (req, res) => {
-  const filePath = path.join(__dirname, req.path);
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      res.status(404).send('File not found');
-    }
-  });
-});
-
-// Fallback catchall for SPA routing - ONLY for HTML routes, NOT static files
-app.get('*', (req, res) => {
-  // Don't serve index.html for file requests (files with extensions)
-  const hasDotExtension = /\.[a-zA-Z0-9]+$/.test(req.path);
-  if (hasDotExtension) {
-    return res.status(404).send('File not found');
-  }
-  // For all other requests (SPA routes), serve index.html
-  res.sendFile(__dirname + '/index.html');
 });
 
 app.listen(PORT, () => {
